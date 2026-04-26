@@ -33,7 +33,6 @@ assignment1/
 ├── mnist_loader_tuning.py             # hyperparameter-svep över regularization-modellen
 │
 ├── assignment1_part3_cifar_catsdogs.py  # Part 3: scratch-CNN och ResNet50
-├── rename_runs_catsAndDogs.py           # döper om Part 3-runs efter config
 │
 ├── tools/
 │   ├── experiments_summary.json       # kanonisk sammanställning av Part 2-resultat
