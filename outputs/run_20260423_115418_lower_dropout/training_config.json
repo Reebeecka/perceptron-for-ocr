@@ -1,0 +1,15 @@
+{
+  "batch_size": 64,
+  "conv_channels": [
+    8,
+    16,
+    32
+  ],
+  "dropout_p": 0.1,
+  "epochs": 5,
+  "fc_hidden": 128,
+  "gaussian_noise_std": 0.1,
+  "lr": 0.001,
+  "name": "lower_dropout",
+  "weight_decay": 0.0001
+}

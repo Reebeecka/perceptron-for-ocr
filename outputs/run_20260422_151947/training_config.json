@@ -1,0 +1,10 @@
+{
+  "batch_size": 64,
+  "dropout_p": 0.3,
+  "epochs": 5,
+  "gaussian_noise_std": 0.1,
+  "lr": 0.001,
+  "seed": 42,
+  "val_size": 10000,
+  "weight_decay": 0.0001
+}

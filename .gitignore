@@ -1,0 +1,71 @@
+# =============================================================================
+# Perceptron för OCR – .gitignore
+# =============================================================================
+# Strategi:
+# - Ignorera allt som kan regenereras (venv, dataset, checkpoints, caches).
+# - Behåll det som är litet, värdefullt och dokumenterar resultaten:
+#       *.png-artefakter, training_config.json, tools/, rapport, README.
+# - Modellvikter (*.pt) ignoreras eftersom de är stora och deterministiska
+#   givet samma config + seed. Kör tränings-scriptet för att regenerera.
+# =============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# --- Virtuella miljöer ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- IDE / editor / OS ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Hemligheter (säkerhet) ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+credentials.json
+
+# --- Build-artefakter ---
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =============================================================================
+# Projekt-specifika ignores
+# =============================================================================
+
+# Matplotlib runtime-cache (skapas automatiskt vid första körning)
+.mplconfig/
+
+# Datasets – auto-laddas av torchvision.datasets.MNIST(root="./data", download=True)
+data/
+
+# MLflow tracking-data – regenereras via `python3 tools/log_to_mlflow.py`
+mlruns/
+
+# Modellcheckpoints – stora binärer, deterministiska givet config + seed.
+# Behåll PNG/JSON i samma run-mapp, ignorera bara vikterna.
+*.pt
+*.pth
+
+# TensorBoard event-filer – binära, stora, regenereras vid träning
+**/tensorboard/
+events.out.tfevents.*

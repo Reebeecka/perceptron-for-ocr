@@ -1,0 +1,12 @@
+{
+  "batch_size": 32,
+  "epochs": 3,
+  "img_size": 64,
+  "lr": 0.0005,
+  "max_train_pool": 2500,
+  "mode": "resnet50",
+  "seed": 42,
+  "test_frac": 0.15,
+  "val_frac": 0.15,
+  "weight_decay": 0.0001
+}

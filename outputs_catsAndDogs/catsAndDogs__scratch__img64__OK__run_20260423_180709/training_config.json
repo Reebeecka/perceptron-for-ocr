@@ -1,0 +1,12 @@
+{
+  "batch_size": 64,
+  "epochs": 5,
+  "img_size": 64,
+  "lr": 0.001,
+  "max_train_pool": null,
+  "mode": "scratch",
+  "seed": 42,
+  "test_frac": 0.15,
+  "val_frac": 0.15,
+  "weight_decay": 0.0001
+}

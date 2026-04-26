@@ -1,0 +1,170 @@
+[
+  {
+    "name": "low_noise",
+    "run_dir": "outputs/run_20260423_115741_low_noise",
+    "lr": 0.001,
+    "dropout_p": 0.3,
+    "weight_decay": 0.0001,
+    "gaussian_noise_std": 0.05,
+    "conv_channels": [
+      8,
+      16,
+      32
+    ],
+    "fc_hidden": 128,
+    "batch_size": 64,
+    "epochs": 5,
+    "best_epoch": 5,
+    "best_val_loss": 0.02805,
+    "test_loss": 0.022243,
+    "test_acc": 0.9934,
+    "total_train_seconds": 66.5
+  },
+  {
+    "name": "lower_dropout",
+    "run_dir": "outputs/run_20260423_115418_lower_dropout",
+    "lr": 0.001,
+    "dropout_p": 0.1,
+    "weight_decay": 0.0001,
+    "gaussian_noise_std": 0.1,
+    "conv_channels": [
+      8,
+      16,
+      32
+    ],
+    "fc_hidden": 128,
+    "batch_size": 64,
+    "epochs": 5,
+    "best_epoch": 5,
+    "best_val_loss": 0.026432,
+    "test_loss": 0.023379,
+    "test_acc": 0.9931,
+    "total_train_seconds": 49.3
+  },
+  {
+    "name": "wider_channels",
+    "run_dir": "outputs/run_20260423_115849_wider_channels",
+    "lr": 0.001,
+    "dropout_p": 0.3,
+    "weight_decay": 0.0001,
+    "gaussian_noise_std": 0.1,
+    "conv_channels": [
+      16,
+      32,
+      64
+    ],
+    "fc_hidden": 128,
+    "batch_size": 64,
+    "epochs": 5,
+    "best_epoch": 4,
+    "best_val_loss": 0.025703,
+    "test_loss": 0.02184,
+    "test_acc": 0.9929,
+    "total_train_seconds": 70.3
+  },
+  {
+    "name": "bigger_fc",
+    "run_dir": "outputs/run_20260423_120000_bigger_fc",
+    "lr": 0.001,
+    "dropout_p": 0.3,
+    "weight_decay": 0.0001,
+    "gaussian_noise_std": 0.1,
+    "conv_channels": [
+      8,
+      16,
+      32
+    ],
+    "fc_hidden": 256,
+    "batch_size": 64,
+    "epochs": 5,
+    "best_epoch": 5,
+    "best_val_loss": 0.028809,
+    "test_loss": 0.022212,
+    "test_acc": 0.9921,
+    "total_train_seconds": 58.7
+  },
+  {
+    "name": "higher_weight_decay",
+    "run_dir": "outputs/run_20260423_115653_higher_weight_decay",
+    "lr": 0.001,
+    "dropout_p": 0.3,
+    "weight_decay": 0.0005,
+    "gaussian_noise_std": 0.1,
+    "conv_channels": [
+      8,
+      16,
+      32
+    ],
+    "fc_hidden": 128,
+    "batch_size": 64,
+    "epochs": 5,
+    "best_epoch": 5,
+    "best_val_loss": 0.034073,
+    "test_loss": 0.026785,
+    "test_acc": 0.992,
+    "total_train_seconds": 47.0
+  },
+  {
+    "name": "baseline",
+    "run_dir": "outputs/run_20260423_115319_baseline",
+    "lr": 0.001,
+    "dropout_p": 0.3,
+    "weight_decay": 0.0001,
+    "gaussian_noise_std": 0.1,
+    "conv_channels": [
+      8,
+      16,
+      32
+    ],
+    "fc_hidden": 128,
+    "batch_size": 64,
+    "epochs": 5,
+    "best_epoch": 4,
+    "best_val_loss": 0.0317,
+    "test_loss": 0.025894,
+    "test_acc": 0.9914,
+    "total_train_seconds": 57.8
+  },
+  {
+    "name": "higher_dropout",
+    "run_dir": "outputs/run_20260423_115508_higher_dropout",
+    "lr": 0.001,
+    "dropout_p": 0.5,
+    "weight_decay": 0.0001,
+    "gaussian_noise_std": 0.1,
+    "conv_channels": [
+      8,
+      16,
+      32
+    ],
+    "fc_hidden": 128,
+    "batch_size": 64,
+    "epochs": 5,
+    "best_epoch": 4,
+    "best_val_loss": 0.032715,
+    "test_loss": 0.025977,
+    "test_acc": 0.9908,
+    "total_train_seconds": 56.3
+  },
+  {
+    "name": "lower_lr",
+    "run_dir": "outputs/run_20260423_115606_lower_lr",
+    "lr": 0.0005,
+    "dropout_p": 0.3,
+    "weight_decay": 0.0001,
+    "gaussian_noise_std": 0.1,
+    "conv_channels": [
+      8,
+      16,
+      32
+    ],
+    "fc_hidden": 128,
+    "batch_size": 64,
+    "epochs": 5,
+    "best_epoch": 5,
+    "best_val_loss": 0.032989,
+    "test_loss": 0.026407,
+    "test_acc": 0.9908,
+    "total_train_seconds": 45.5
+  }
+]

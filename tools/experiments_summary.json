@@ -1,0 +1,62 @@
+{
+  "_about": "Kanonisk sammanställning av samtliga experiment i assignment 1. Används av tools/make_summary_plot.py och tools/log_to_mlflow.py. Värden kommer ursprungligen från rapport_assignment1_part2.md (huvudkörningar) och outputs/tuning_results.json (tuning-svep).",
+  "part2_main_runs": [
+    {
+      "name": "FFN baseline",
+      "run_dir": "outputs/run_20260422_145158",
+      "model_type": "FFN",
+      "augmentation": false,
+      "regularization": false,
+      "epochs": 5,
+      "best_epoch": 5,
+      "test_loss": 0.0802,
+      "test_acc": 0.9764
+    },
+    {
+      "name": "FFN + augmentation",
+      "run_dir": "outputs/run_20260422_145249",
+      "model_type": "FFN",
+      "augmentation": true,
+      "regularization": false,
+      "epochs": 5,
+      "best_epoch": 5,
+      "test_loss": 0.1016,
+      "test_acc": 0.9698
+    },
+    {
+      "name": "2-layer CNN + aug",
+      "run_dir": "outputs/run_20260422_145403",
+      "model_type": "CNN-2",
+      "augmentation": true,
+      "regularization": false,
+      "epochs": 5,
+      "best_epoch": 5,
+      "test_loss": 0.0305,
+      "test_acc": 0.9895
+    },
+    {
+      "name": "3-layer CNN + aug",
+      "run_dir": "outputs/run_20260422_145458",
+      "model_type": "CNN-3",
+      "augmentation": true,
+      "regularization": false,
+      "epochs": 5,
+      "best_epoch": 5,
+      "test_loss": 0.0296,
+      "test_acc": 0.9895
+    },
+    {
+      "name": "3-layer CNN + reg",
+      "run_dir": "outputs/run_20260422_151947",
+      "model_type": "CNN-3+reg",
+      "augmentation": true,
+      "regularization": true,
+      "epochs": 5,
+      "best_epoch": 5,
+      "test_loss": 0.0217,
+      "test_acc": 0.9921
+    }
+  ],
+  "part2_tuning_results_file": "outputs/tuning_results.json",
+  "part3_cats_dogs_runs_dir": "outputs_catsAndDogs"
+}
