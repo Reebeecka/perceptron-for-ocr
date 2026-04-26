@@ -25,6 +25,7 @@ assignment1/
 ├── rapport_assignment1_part2.html     # rapport (exporterad HTML)
 │
 ├── neuron.py                          # mini-experiment med en enkel "neuron"
+├── numpy_dense_layer.py               # Del 1B: NumPy Dense/ANN-lager (W @ x + b)
 ├── mnist_loader.py                    # FFN-baseline
 ├── mnist_loader_2_layer_CNN.py        # 2-layer CNN
 ├── mnist_loader_3_layer_CNN.py        # 3-layer CNN
@@ -44,6 +45,26 @@ assignment1/
 ```
 
 ---
+
+## Del 1B – NumPy-lager (obligatoriskt)
+
+En separat NumPy-implementation av ett Dense/ANN-lager (forward-pass med matrisoperation \(W @ x + b\)) finns i `numpy_dense_layer.py`.
+
+## Compute/device (GPU)
+
+Körningarna i detta repo är gjorda på macOS (Apple Silicon) med PyTorch **MPS** när det finns tillgängligt (annars CPU). Vilken device som användes sparas i respektive run-mapps `training_config.json` som fältet `device`.
+
+## Part 3 – Data curation (Cats vs Dogs)
+
+I del 3 används **CIFAR-10** som källa och kurateras till ett binärt dataset *cats vs dogs*:
+
+- **Filtrering**: CIFAR-10 label-index **3=cat** och **5=dog** behålls.
+- **Remap**: labels mappas om till \(\{0,1\}\) med klassnamn `["cat", "dog"]`.
+- **Splits**: vi använder CIFAR-10:s inbyggda `train=True` som train/val-pool och `train=False` som test.
+- **Validering**: en val-split tas ut från train-poolen i koden.
+- **Pool för snabbhet**: för transfer learning kan `max_train_pool` begränsa mängden träningsdata (t.ex. `2500`) för snabbare körningar på laptop.
+
+Se implementationen i `_curate_cifar10_catsdogs()` i `assignment1_part3_cifar_catsdogs.py`.
 
 ## Snabbstart
 

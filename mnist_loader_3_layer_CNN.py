@@ -227,6 +227,7 @@ def main():
         "epochs": 5,
         "lr": 1e-3,
         "val_size": 10_000,
+        "device": str(device),
     }
     print("training_config=" + json.dumps(training_config, indent=2, sort_keys=True))
 

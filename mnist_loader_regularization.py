@@ -236,6 +236,7 @@ def main():
         "dropout_p": 0.30,
         "weight_decay": 1e-4,
         "gaussian_noise_std": 0.10,
+        "device": str(device),
     }
     print("training_config=" + json.dumps(training_config, indent=2, sort_keys=True))
 

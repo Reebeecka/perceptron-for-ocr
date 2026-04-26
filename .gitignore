@@ -66,6 +66,10 @@ mlruns/
 *.pt
 *.pth
 
+# --- Undantag: versionera checkpoints för en referenskörning (för att visa MLOps-kravet i repo:t) ---
+!outputs/run_20260422_145158/best.pt
+!outputs/run_20260422_145158/epoch_*.pt
+
 # TensorBoard event-filer – binära, stora, regenereras vid träning
 **/tensorboard/
 events.out.tfevents.*
