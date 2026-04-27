@@ -1,13 +1,13 @@
 # Assignment 1 – Bildklassificering med FFN, CNN och transfer learning
 
-> **TL;DR.** Två datasets, två huvudfrågor och ett genomgående tema:
+> **TL;DR.** Två datasets, två frågor jag ville svara på:
 >
 > 1. **MNIST (Part 2):** kan en CNN slå en enkel FFN, och hjälper regularization?
->    Ja — vi går från **97.64%** (FFN-baseline) → **99.21%** (3-layer CNN + dropout/BN/weight decay), och hyperparameter-tuning pressar det vidare till **99.34%**.
+>    Ja — jag gick från **97.64%** (FFN-baseline) → **99.21%** (3-layer CNN + dropout/BN/weight decay), och hyperparameter-tuning pressade det vidare till **99.34%**.
 > 2. **Cats vs Dogs (Part 3):** kan transfer learning slå en CNN tränad från grunden?
 >    Ja — ResNet50 (förtränad på ImageNet) når högre accuracy med betydligt mindre data och färre epoker.
 >
-> Hela arbetet är spårbart: varje körning sparas i en egen `outputs/run_<timestamp>/`-mapp med config, checkpoints, plottar och TensorBoard-loggar. Resultaten kan reproduceras månader senare.
+> Det jag tycker är viktigast är inte siffrorna i sig utan att alla körningar är spårbara: varje körning sparas i en egen `outputs/run_<timestamp>/`-mapp med config, checkpoints, plottar och TensorBoard-loggar, så jag faktiskt kan reproducera dem månader senare.
 
 ![Sammanfattning av alla körningar](outputs/summary_all_runs.png)
 
@@ -48,23 +48,23 @@ assignment1/
 
 ## Del 1B – NumPy-lager (obligatoriskt)
 
-En separat NumPy-implementation av ett Dense/ANN-lager (forward-pass med matrisoperation \(W @ x + b\)) finns i `numpy_dense_layer.py`.
+Det obligatoriska lite-mer-från-grunden-momentet ligger i `numpy_dense_layer.py`: ett Dense/ANN-lager i NumPy där forward-passet är just \(W @ x + b\). Inget magiskt, men bra att ha skrivit själv för att förstå vad som händer på låg nivå.
 
 ## Compute/device (GPU)
 
-Körningarna i detta repo är gjorda på macOS (Apple Silicon) med PyTorch **MPS** när det finns tillgängligt (annars CPU). Vilken device som användes sparas i respektive run-mapps `training_config.json` som fältet `device`.
+Alla körningar är gjorda på macOS (Apple Silicon) med PyTorch **MPS** när det gick (annars CPU). Vilken device som faktiskt användes sparas i respektive run-mapps `training_config.json` som fältet `device`, så det går att kolla i efterhand.
 
 ## Part 3 – Data curation (Cats vs Dogs)
 
-I del 3 används **CIFAR-10** som källa och kurateras till ett binärt dataset *cats vs dogs*:
+I del 3 utgår jag från **CIFAR-10** och kurerar fram ett binärt cats vs dogs-dataset:
 
-- **Filtrering**: CIFAR-10 label-index **3=cat** och **5=dog** behålls.
-- **Remap**: labels mappas om till \(\{0,1\}\) med klassnamn `["cat", "dog"]`.
-- **Splits**: vi använder CIFAR-10:s inbyggda `train=True` som train/val-pool och `train=False` som test.
-- **Validering**: en val-split tas ut från train-poolen i koden.
-- **Pool för snabbhet**: för transfer learning kan `max_train_pool` begränsa mängden träningsdata (t.ex. `2500`) för snabbare körningar på laptop.
+- **Filtrering:** behåller CIFAR-10 label-index **3=cat** och **5=dog**.
+- **Remap:** mapparlabels till \(\{0,1\}\) med klassnamn `["cat", "dog"]`.
+- **Splits:** `train=True` används som train/val-pool, `train=False` som test.
+- **Validering:** val-split tas ut från train-poolen i koden.
+- **Pool för snabbhet:** för transfer learning kan `max_train_pool` begränsa mängden träningsdata (t.ex. `2500`) så det går att köra på laptop på rimlig tid.
 
-Se implementationen i `_curate_cifar10_catsdogs()` i `assignment1_part3_cifar_catsdogs.py`.
+Implementationen ligger i `_curate_cifar10_catsdogs()` i `assignment1_part3_cifar_catsdogs.py`.
 
 ## Snabbstart
 
@@ -131,7 +131,7 @@ Detaljerade kurvor och confusion matrices finns i respektive run-mapp samt i Ten
 
 ## Reproducerbarhet och MLOps
 
-Inspirerat av [Experiment Tracking with MLflow, Weights & Biases & Neptune](https://www.youtube.com/watch?v=KkiqTLQbAys) — *"If you cannot reproduce an experiment, you don't have a result. You have a coincidence."*
+Inspirerat av [Experiment Tracking with MLflow, Weights & Biases & Neptune](https://www.youtube.com/watch?v=KkiqTLQbAys) — *"If you cannot reproduce an experiment, you don't have a result. You have a coincidence."* Det citatet är ungefär hela anledningen till att jag valde att lägga lite extra tid på loggning från början istället för att "bara köra".
 
 För **varje** körning sparas:
 
@@ -148,7 +148,7 @@ För **varje** körning sparas:
 
 ### Verktygsval
 
-| Verktyg         | Vad vi använder det till                                  | Varför just det                          |
+| Verktyg         | Vad jag använder det till                                 | Varför just det                          |
 | --------------- | --------------------------------------------------------- | ---------------------------------------- |
 | **TensorBoard** | Live träningskurvor, augmentation-preview                 | Inbyggt i PyTorch, ingen extra setup     |
 | **Run-mappar**  | Reproducerbarhet, checkpoints, plottar                    | Egen lättviktig lösning, full kontroll   |
@@ -158,7 +158,7 @@ För **varje** körning sparas:
 ### Hur man läser en gammal körning
 
 ```bash
-# Visa konfig och lägg till resultat
+# Visa konfig och resultat
 cat outputs/run_20260422_151947/training_config.json
 
 # Träningskurvor + confusion matrix

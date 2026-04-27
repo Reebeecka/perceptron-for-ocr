@@ -1,12 +1,11 @@
 """
-Genererar en sammanfattnings-figur över alla experiment i assignment 1.
+Liten skript som jag använder för att få en helhetsbild av alla mina körningar
+istället för att klicka runt mellan TensorBoards.
 
-Vänster panel: huvudkörningarna (Part 2) – arkitekturjämförelse FFN -> CNN -> +reg.
-Höger panel: tuning-svepet (Part 2) – hur olika hyperparametrar påverkade test accuracy.
+Vänster panel: arkitekturjämförelsen i Part 2 (FFN -> CNN -> CNN+reg).
+Höger panel: hyperparameter-svepet — hur varje knapp jag vred på påverkade test_acc.
 
-Output: outputs/summary_all_runs.png
-
-Körning:
+Resultat hamnar i outputs/summary_all_runs.png. Kör med:
     python3 tools/make_summary_plot.py
 """
 from __future__ import annotations

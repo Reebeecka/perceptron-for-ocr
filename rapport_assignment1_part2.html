@@ -7795,12 +7795,12 @@ a.anchor-link {
 </style>
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
-<main><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=5c7afb84">
+<main><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5c7afb84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTML</span><span class="p">,</span> <span class="n">display</span>
@@ -7833,6 +7833,38 @@ a.anchor-link {
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.report-title {
+  background: linear-gradient(135deg, #1f3c88, #3b82f6);
+  color: white;
+  padding: 24px 28px;
+  border-radius: 14px;
+  margin: 8px 0 24px 0;
+}
+.report-title h1 { margin: 0 0 8px 0; }
+.report-title p { margin: 0; opacity: 0.95; }
+.report-box {
+  background: #f8fafc;
+  border-left: 5px solid #3b82f6;
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin: 14px 0;
+}
+table { width: 100%; }
+th { background: #e2e8f0; }
+</style>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ead20f0e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
@@ -7851,20 +7883,34 @@ a.anchor-link {
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f7ef58bf">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="TL;DR">TL;DR<a class="anchor-link" href="#TL;DR">¶</a></h2><p>Jag tränade en handfull modeller på MNIST och jämförde hur de presterade när jag stegvis bytte från en enkel FFN till olika CNN-varianter och sen lade på regularization. Den korta versionen är att FFN-baseline landade på <strong>97.64%</strong> test accuracy, och så fort jag bytte till en CNN hoppade resultatet upp till nästan 99%. När jag lade på dropout, batch normalization och weight decay på 3-layer CNN:en kom jag till <strong>99.21%</strong>, och med lite hyperparameter-tuning ovanpå det pressades det vidare till <strong>99.34%</strong> ("low_noise"-konfigen).</p>
+<p>Det jag tycker är mest värt att lyfta är inte slutsiffran utan att varje körning är spårbar: alla körningar har en egen <code>outputs/run_&lt;timestamp&gt;/</code>-mapp med config, checkpoints, träningskurvor, confusion matrix och TensorBoard-loggar. Det betyder att jag kan gå tillbaka månader senare och faktiskt förstå vad jag gjorde, inte bara veta vad det landade på.</p>
+<p><img alt="Sammanfattning av alla körningar" src="outputs/summary_all_runs.png"/></p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65083014">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Inledning">Inledning<a class="anchor-link" href="#Inledning">¶</a></h2><p>I den här delen av uppgiften var målet att gå vidare från en enkel feed-forward-modell (FFN) till mer bildanpassade lösningar, samt att börja arbeta mer strukturerat med MLOps, data augmentation och experiment med olika nätarkitekturer.</p>
-<p>Arbetet utgick från MNIST-datasetet med handskrivna siffror. Modellerna tränades i PyTorch och resultaten följdes i TensorBoard. För varje körning sparades även checkpoints, träningskonfiguration och visuella artefakter som träningskurvor, confusion matrix och exempelbilder.</p>
-<h2 id="M%C3%A5l">Mål<a class="anchor-link" href="#M%C3%A5l">¶</a></h2><ul>
-<li>införa enklare MLOps-arbetssätt</li>
-<li>logga träning och prestanda tydligt</li>
-<li>testa data augmentation</li>
-<li>byta från FFN till CNN</li>
-<li>jämföra olika CNN-arkitekturer</li>
+<h2 id="Inledning">Inledning<a class="anchor-link" href="#Inledning">¶</a></h2><p>Målet med den här delen var att bygga vidare från en enkel feed-forward-modell och se vad som händer när jag byter till mer bildanpassade arkitekturer. Samtidigt ville jag börja jobba mer strukturerat — alltså inte bara skriva en <code>.py</code>-fil och få ut en siffra, utan faktiskt logga, spara checkpoints och kunna jämföra körningar i efterhand.</p>
+<p>Allt utgår från MNIST-datasetet. Modellerna är skrivna i PyTorch och loggas i TensorBoard. För varje körning sparar jag config, checkpoints, kurvor, confusion matrix och exempelbilder så jag kan granska träningen i detalj efteråt.</p>
+<h2 id="M%C3%A5l">Mål<a class="anchor-link" href="#M%C3%A5l">¶</a></h2><p>Det jag ville få ut av del 2 var:</p>
+<ul>
+<li>en enklare MLOps-rutin som faktiskt fungerar för mig</li>
+<li>tydligare loggning av träning och prestanda</li>
+<li>testa vad data augmentation gör i praktiken</li>
+<li>byta från FFN till CNN och se hur stor skillnad det gör</li>
+<li>jämföra olika CNN-arkitekturer mot varandra på lika villkor</li>
 </ul>
 </div>
 </div>
@@ -7876,21 +7922,20 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="MLOps-och-sp%C3%A5rbarhet">MLOps och spårbarhet<a class="anchor-link" href="#MLOps-och-sp%C3%A5rbarhet">¶</a></h2><p>För att göra experimenten spårbara skapades en egen output-mapp för varje körning: <code>outputs/run_&lt;timestamp&gt;/</code>.</p>
-<p>I varje körning sparades bland annat:</p>
+<h2 id="MLOps-och-sp%C3%A5rbarhet">MLOps och spårbarhet<a class="anchor-link" href="#MLOps-och-sp%C3%A5rbarhet">¶</a></h2><p>För att slippa hamna i ett läge där jag har siffror men inte vet hur jag fick fram dem skapade jag en egen output-mapp per körning: <code>outputs/run_&lt;timestamp&gt;/</code>. I varje mapp sparas:</p>
 <ul>
-<li><code>training_config.json</code></li>
-<li><code>best.pt</code></li>
-<li>checkpoints per epoch</li>
-<li>träningskurvor</li>
-<li>confusion matrix</li>
-<li>exempelbilder</li>
-<li>TensorBoard-loggar</li>
+<li><code>training_config.json</code> (alla hyperparametrar)</li>
+<li><code>best.pt</code> (bästa checkpoint enligt val-loss)</li>
+<li><code>epoch_NNN.pt</code> per epoch</li>
+<li><code>curves_loss_acc.png</code></li>
+<li><code>confusion_matrix_percent.png</code></li>
+<li><code>examples_correct.png</code> och <code>examples_incorrect.png</code></li>
+<li>TensorBoard-loggar i <code>tensorboard/</code></li>
 </ul>
-<p>Detta gjorde det möjligt att följa träning steg för steg, jämföra olika modeller, hitta bästa checkpoint med hjälp av validation loss och analysera tidigare körningar i efterhand.</p>
+<p>I praktiken gör det här att jag kan följa träningen steg för steg, gå tillbaka och titta på en gammal körning, och välja bästa checkpoint utifrån val-loss istället för att bara ta sista epoken.</p>
 <div class="report-box">
-<b>TensorBoard loggade bland annat:</b><br/>
-train/validation loss, train/validation accuracy, tid per epoch, total träningstid, throughput, exempelbilder och augmentation-preview.
+<b>TensorBoard loggar:</b><br/>
+train/val loss, train/val accuracy, tid per epoch, total träningstid, throughput, exempelbilder och augmentation-preview — så jag kan se hur det rör sig live medan körningen pågår.
 </div>
 </div>
 </div>
@@ -7902,77 +7947,50 @@ train/validation loss, train/validation accuracy, tid per epoch, total tränings
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Modeller-som-testades">Modeller som testades<a class="anchor-link" href="#Modeller-som-testades">¶</a></h2><h3 id="1.-Baseline-FFN">1. Baseline FFN<a class="anchor-link" href="#1.-Baseline-FFN">¶</a></h3><p>Den första modellen var en enkel feed-forward network där bilden först flattenades från <code>28x28</code> till en vektor med 784 värden och sedan skickades genom två fully connected layers.</p>
-<p>Arkitektur i korthet:</p>
+<h2 id="Modeller-som-testades">Modeller som testades<a class="anchor-link" href="#Modeller-som-testades">¶</a></h2><h3 id="1.-Baseline-FFN">1. Baseline FFN<a class="anchor-link" href="#1.-Baseline-FFN">¶</a></h3><p>Det jag började med var en enkel feed-forward, alltså en där bilden flattenas från <code>28x28</code> till en vektor på 784 värden och skickas genom två fully connected layers:</p>
 <ul>
 <li><code>Flatten</code></li>
 <li><code>Linear(784, 128)</code></li>
 <li><code>ReLU</code></li>
 <li><code>Linear(128, 10)</code></li>
 </ul>
-<h3 id="2.-FFN-med-augmentation">2. FFN med augmentation<a class="anchor-link" href="#2.-FFN-med-augmentation">¶</a></h3><p>För att göra modellen mer robust testades data augmentation på träningsdatan. Augmentationen applicerades bara på train-setet, medan validation och test hölls rena för att ge rättvis utvärdering.</p>
-<p>Följande augmentation användes:</p>
+<p>Den fungerar förvånansvärt bra på MNIST, men det är ganska tydligt att den inte tar vara på att indatan faktiskt är en bild — den ser bara 784 oberoende pixlar. Det är därför jag förväntade mig att en CNN skulle göra bättre ifrån sig.</p>
+<h3 id="2.-FFN-med-augmentation">2. FFN med augmentation<a class="anchor-link" href="#2.-FFN-med-augmentation">¶</a></h3><p>Samma grundmodell, men med augmentation på train-setet (validation och test hölls rena). Jag ville se om enbart augmentation kunde lyfta en FFN. Augmentationen jag använde var liten rotation, liten förskjutning, liten skalning, liten shear och Gaussian noise — alltså rimliga variationer, inte att försöka göra bilderna <em>bättre</em>.</p>
+<h3 id="3.-2-layer-CNN">3. 2-layer CNN<a class="anchor-link" href="#3.-2-layer-CNN">¶</a></h3><pre><code>Conv2d(1, 16, kernel_size=3, padding=1)
+Conv2d(16, 32, kernel_size=3, padding=1)
+MaxPool2d(2, 2) efter conv-lagren
+</code></pre>
+<h3 id="4.-3-layer-CNN">4. 3-layer CNN<a class="anchor-link" href="#4.-3-layer-CNN">¶</a></h3><p>En djupare variant:</p>
+<pre><code>Conv2d(1, 8, kernel_size=3, padding=1)
+Conv2d(8, 16, kernel_size=3, padding=1)
+Conv2d(16, 32, kernel_size=3, padding=1)
+</code></pre>
+<p>Tanken var att se om ett extra conv-lager ger märkbart bättre features eller om det är overkill för MNIST.</p>
+<h3 id="5.-3-layer-CNN-med-regularization">5. 3-layer CNN med regularization<a class="anchor-link" href="#5.-3-layer-CNN-med-regularization">¶</a></h3><p>Samma 3-layer CNN, men med:</p>
 <ul>
-<li>liten rotation</li>
-<li>liten förskjutning</li>
-<li>liten skalning</li>
-<li>liten shear</li>
-<li>Gaussian noise</li>
-</ul>
-<h3 id="3.-2-layer-CNN">3. 2-layer CNN<a class="anchor-link" href="#3.-2-layer-CNN">¶</a></h3><p>En CNN med två convolutional layers:</p>
-<ul>
-<li><code>Conv2d(1, 16, kernel_size=3, padding=1)</code></li>
-<li><code>Conv2d(16, 32, kernel_size=3, padding=1)</code></li>
-<li><code>MaxPool2d(2, 2)</code> efter conv-lagren</li>
-</ul>
-<h3 id="4.-3-layer-CNN">4. 3-layer CNN<a class="anchor-link" href="#4.-3-layer-CNN">¶</a></h3><p>En djupare CNN med tre convolutional layers:</p>
-<ul>
-<li><code>Conv2d(1, 8, kernel_size=3, padding=1)</code></li>
-<li><code>Conv2d(8, 16, kernel_size=3, padding=1)</code></li>
-<li><code>Conv2d(16, 32, kernel_size=3, padding=1)</code></li>
-</ul>
-<p>Den djupare modellen testades för att se om fler conv-lager kunde ge bättre features och därmed bättre resultat.</p>
-<h3 id="5.-3-layer-CNN-med-regularization">5. 3-layer CNN med regularization<a class="anchor-link" href="#5.-3-layer-CNN-med-regularization">¶</a></h3><p>Som sista steg byggdes en ny modell ovanpå 3-layer CNN där tre regularization-metoder lades till:</p>
-<ul>
-<li><code>BatchNorm2d</code> efter convolutional layers</li>
+<li><code>BatchNorm2d</code> efter varje conv-lager</li>
 <li><code>Dropout</code> i fully connected-delen</li>
 <li><code>weight_decay</code> i <code>Adam</code>-optimizern</li>
 </ul>
-<p>Syftet var att minska overfitting och samtidigt göra träningen mer stabil.</p>
-<h2 id="Regularization">Regularization<a class="anchor-link" href="#Regularization">¶</a></h2><p>Regularization används för att minska risken för overfitting. Tanken är att modellen inte ska bli alltför specialiserad på träningsdatan, utan i stället lära sig mer generella mönster som också fungerar bra på validation- och testdata.</p>
-<p>I den här uppgiften testades tre vanliga regularization-metoder:</p>
-<h3 id="Dropout">Dropout<a class="anchor-link" href="#Dropout">¶</a></h3><p>Dropout betyder att vissa neuroner slumpmässigt stängs av under träningen. Modellen kan då inte lita för mycket på en enda väg genom nätverket, utan måste sprida ut sitt lärande över fler neuroner.</p>
-<p>Pedagogiskt kan man tänka att modellen tvingas "träna utan några av sina favoritneuroner" i varje steg. Det brukar minska overfitting.</p>
-<h3 id="Batch-normalization">Batch normalization<a class="anchor-link" href="#Batch-normalization">¶</a></h3><p>Batch normalization används för att hålla aktiveringarna i nätverket mer stabila mellan olika lager. Det gör ofta träningen jämnare och snabbare, och kan också ge en viss regularization-effekt.</p>
-<p>I CNN-modeller placeras batch normalization ofta direkt efter ett convolutional layer. Det hjälper modellen att träna mer stabilt även när nätverket blir djupare.</p>
-<h3 id="Weight-decay">Weight decay<a class="anchor-link" href="#Weight-decay">¶</a></h3><p>Weight decay betyder att stora vikter straffas lite i optimeringen. Det gör att modellen inte lika lätt får väldigt extrema parameter-värden.</p>
-<p>Pedagogiskt kan man säga att modellen uppmuntras att hålla sig till enklare lösningar i stället för att överanpassa sig till detaljer i träningsdatan.</p>
-<h3 id="Varf%C3%B6r-det-h%C3%A4r-%C3%A4r-viktigt">Varför det här är viktigt<a class="anchor-link" href="#Varf%C3%B6r-det-h%C3%A4r-%C3%A4r-viktigt">¶</a></h3><p>Om regularization fungerar som tänkt kan man ofta se att:</p>
-<ul>
-<li>train accuracy kanske blir lite lägre än utan regularization</li>
-<li>men validation- och testresultat blir bättre eller stabilare</li>
-<li>skillnaden mellan train och val minskar</li>
-</ul>
-<p>Det betyder att modellen generaliserar bättre, alltså fungerar bättre på ny data som den inte tränat på tidigare.</p>
+<p>Det är den modell jag förväntade mig skulle prestera bäst, och den gjorde också det.</p>
+<h2 id="Regularization">Regularization<a class="anchor-link" href="#Regularization">¶</a></h2><p>Regularization handlar i grunden om att tvinga modellen att inte överanpassa sig till träningsdatan. Jag testade tre varianter parallellt: dropout, batch normalization och weight decay.</p>
+<h3 id="Dropout">Dropout<a class="anchor-link" href="#Dropout">¶</a></h3><p>Dropout stänger av slumpmässiga neuroner under träningen. Effekten blir att modellen inte får luta sig på en enda väg genom nätet — den måste sprida ut sin kunskap. Jag tycker det enklaste sättet att tänka på det är att modellen tvingas träna utan vissa av sina "favoritneuroner" varje steg, och då blir hela nätet mer robust.</p>
+<h3 id="Batch-normalization">Batch normalization<a class="anchor-link" href="#Batch-normalization">¶</a></h3><p>Batch normalization håller aktiveringarna mer stabila mellan lagren. Det gör i praktiken att träningen blir jämnare och ofta snabbare, och i många experiment ger det också en viss regularization-effekt på köpet. I CNN:erna lade jag den direkt efter conv-lagren.</p>
+<h3 id="Weight-decay">Weight decay<a class="anchor-link" href="#Weight-decay">¶</a></h3><p>Weight decay är ett straff på stora vikter, så att optimeringen inte tillåts springa iväg till extrema parameter-värden. Det är ett ganska billigt sätt att uppmuntra enklare lösningar.</p>
+<h3 id="Vad-jag-f%C3%B6rv%C3%A4ntade-mig">Vad jag förväntade mig<a class="anchor-link" href="#Vad-jag-f%C3%B6rv%C3%A4ntade-mig">¶</a></h3><p>Om regularization fungerar som tänkt brukar man se att train-resultatet kanske blir lite <em>sämre</em> (modellen får inte memorera lika bra), men val/test blir bättre eller mer stabilt. Skillnaden mellan train och val krymper. Det är samma sak jag tittade efter i mina körningar.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75705406">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f0882411">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="CNN:-varf%C3%B6r-convolutional-layers?">CNN: varför convolutional layers?<a class="anchor-link" href="#CNN:-varf%C3%B6r-convolutional-layers?">¶</a></h2><p>Nästa steg var att byta ut början av modellen till convolutional layers. En CNN är bättre lämpad för bilder eftersom den kan hitta lokala mönster som kanter, linjer, kurvor och delar av siffror.</p>
-<p>En viktig idé är translationsinvarians, alltså att modellen ska kunna känna igen samma siffra även om den ligger lite olika i bilden.</p>
-<p>Efter convolutional layers användes:</p>
-<ul>
-<li><code>ReLU</code></li>
-<li><code>MaxPool2d</code></li>
-</ul>
-<p>Pooling minskar dimensionerna och hjälper modellen att fokusera på viktiga features.</p>
-<p>Tidiga convolutional layers brukar lära sig enkla features som vertikala och horisontella linjer, diagonaler och enkla kurvor. Senare conv-lager bygger vidare på dessa och kan lära sig mer komplexa mönster som hörn, slingor och delar av siffror.</p>
+<h2 id="CNN:-varf%C3%B6r-convolutional-layers?">CNN: varför convolutional layers?<a class="anchor-link" href="#CNN:-varf%C3%B6r-convolutional-layers?">¶</a></h2><p>Nästa steg var att byta ut början av modellen mot convolutional layers. En CNN passar bilder bättre eftersom den kan plocka upp lokala mönster — kanter, linjer, kurvor, delar av siffror — och eftersom den är translationsinvariant. Alltså modellen ska kunna känna igen samma siffra även om den ligger lite olika i bilden, vilket en flat FFN aldrig riktigt fattar.</p>
+<p>Efter conv-lagren körde jag <code>ReLU</code> följt av <code>MaxPool2d</code>. Pooling minskar dimensionerna och hjälper modellen att fokusera på de features som faktiskt betyder något.</p>
+<p>Det jag tycker är intressant med CNN:er är att de tidiga conv-lagren brukar lära sig riktigt enkla saker — vertikala och horisontella linjer, diagonaler, enkla kurvor — medan de senare lagren bygger vidare och fångar mer meningsfulla strukturer som hörn, slingor, eller delar av en hel siffra. För MNIST är det inte så mycket att hämta i djupare lager (siffrorna är ju ganska enkla), men det är samma princip som gör att djupare nät skalar så bra på mer komplex bilddata.</p>
 </div>
 </div>
 </div>
@@ -7983,7 +8001,8 @@ train/validation loss, train/validation accuracy, tid per epoch, total tränings
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Resultat">Resultat<a class="anchor-link" href="#Resultat">¶</a></h2><table>
+<h2 id="Resultat">Resultat<a class="anchor-link" href="#Resultat">¶</a></h2><p>Här är de fem huvudkörningarna jag använde som jämförelse, alla med 5 epochs:</p>
+<table>
 <thead>
 <tr>
 <th>Modell</th>
@@ -8031,22 +8050,14 @@ train/validation loss, train/validation accuracy, tid per epoch, total tränings
 </tr>
 </tbody>
 </table>
-<h2 id="Tolkning-av-resultaten">Tolkning av resultaten<a class="anchor-link" href="#Tolkning-av-resultaten">¶</a></h2><p>Det tydligaste resultatet var att båda CNN-modellerna presterade bättre än FFN-varianterna.</p>
-<p>Några observationer:</p>
+<h2 id="Tolkning-av-resultaten">Tolkning av resultaten<a class="anchor-link" href="#Tolkning-av-resultaten">¶</a></h2><p>Det tydligaste mönstret är att båda CNN-modellerna var klart bättre än FFN-varianterna, vilket var precis det jag förväntade mig. Det jag inte riktigt förväntade mig var att augmentation faktiskt gjorde FFN:en <em>sämre</em> i den här körningen — den landade på 96.98% mot baseline 97.64%. Min tolkning är att en så enkel FFN inte har kapacitet att hantera den extra variationen, och att augmentation kommer till sin rätt först när modellen är tillräckligt uttrycksfull för att dra nytta av den.</p>
+<p>Några andra observationer:</p>
 <ul>
-<li>FFN-baseline nådde god prestanda, men låg tydligt under CNN-modellerna.</li>
-<li>FFN med augmentation blev i just denna körning något sämre än baseline.</li>
-<li>2-layer CNN gav ett stort hopp uppåt i test accuracy.</li>
-<li>3-layer CNN gav samma test accuracy som 2-layer CNN, men något lägre test loss.</li>
-<li>3-layer CNN med regularization gav bäst resultat av alla testade modeller.</li>
+<li>2-layer CNN gav ett stort hopp uppåt jämfört med FFN, vilket bekräftar att MNIST verkligen är ett bildproblem och inte bara ett tabulärt klassificeringsproblem.</li>
+<li>3-layer CNN landade på exakt samma test accuracy som 2-layer CNN, men med marginellt lägre test loss. Skillnaden är så liten att jag inte tycker man kan säga att det djupare nätet är "bättre" för just MNIST.</li>
+<li>3-layer CNN med regularization blev bäst på alla mått: lägre test loss (0.0217) och högre test accuracy (99.21%) än alla andra. Det är där dropout, batch norm och weight decay tillsammans verkligen syntes.</li>
 </ul>
-<p>Det kan tolkas som att:</p>
-<ul>
-<li>CNN är bättre lämpat än FFN för bilddata</li>
-<li>ett extra convolutional layer kan ge något bättre representation, även om skillnaden här var liten</li>
-<li>augmentation förbättrade inte den enkla FFN-modellen i just denna körning</li>
-<li>regularization med dropout, batch normalization och weight decay förbättrade både test loss och test accuracy jämfört med den vanliga 3-layer CNN-modellen</li>
-</ul>
+<p>Sammanfattat: CNN slår FFN, ett extra conv-lager hjälper marginellt, och regularization gör en konkret skillnad även när modellen redan presterar bra.</p>
 </div>
 </div>
 </div>
@@ -8057,7 +8068,7 @@ train/validation loss, train/validation accuracy, tid per epoch, total tränings
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Exempel-p%C3%A5-sparade-artefakter">Exempel på sparade artefakter<a class="anchor-link" href="#Exempel-p%C3%A5-sparade-artefakter">¶</a></h2><p>Nedan visas några exempel på artefakter som sparades under experimenten.</p>
+<h2 id="Exempel-p%C3%A5-sparade-artefakter">Exempel på sparade artefakter<a class="anchor-link" href="#Exempel-p%C3%A5-sparade-artefakter">¶</a></h2><p>Några av de bilder som skapas automatiskt per körning:</p>
 <h3 id="Baseline-FFN:-tr%C3%A4ningskurvor">Baseline FFN: träningskurvor<a class="anchor-link" href="#Baseline-FFN:-tr%C3%A4ningskurvor">¶</a></h3><p><img alt="Baseline curves" src="outputs/run_20260422_145158/curves_loss_acc.png"/></p>
 <h3 id="2-layer-CNN:-tr%C3%A4ningskurvor">2-layer CNN: träningskurvor<a class="anchor-link" href="#2-layer-CNN:-tr%C3%A4ningskurvor">¶</a></h3><p><img alt="2-layer CNN curves" src="outputs/run_20260422_145403/curves_loss_acc.png"/></p>
 <h3 id="3-layer-CNN:-confusion-matrix">3-layer CNN: confusion matrix<a class="anchor-link" href="#3-layer-CNN:-confusion-matrix">¶</a></h3><p><img alt="3-layer CNN confusion matrix" src="outputs/run_20260422_145458/confusion_matrix_percent.png"/></p>
@@ -8067,26 +8078,20 @@ train/validation loss, train/validation accuracy, tid per epoch, total tränings
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ab8be6c4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b03f6f84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="%C3%96verfitting-och-modellval">Överfitting och modellval<a class="anchor-link" href="#%C3%96verfitting-och-modellval">¶</a></h2><p>Validation loss användes för att avgöra vilken checkpoint som var bäst. Den bästa modellen sparades som <code>best.pt</code>.</p>
-<p>Det här är viktigt eftersom sista epoken inte alltid är bäst. Om train loss fortsätter minska men validation loss börjar öka, är det ett tecken på overfitting. Genom att välja checkpoint med lägst validation loss blir modellen mer robust.</p>
-<h2 id="Begr%C3%A4nsningar-i-j%C3%A4mf%C3%B6relsen">Begränsningar i jämförelsen<a class="anchor-link" href="#Begr%C3%A4nsningar-i-j%C3%A4mf%C3%B6relsen">¶</a></h2><p>Jämförelsen är inte helt perfekt kontrollerad, eftersom:</p>
+<h2 id="%C3%96verfitting-och-modellval">Överfitting och modellval<a class="anchor-link" href="#%C3%96verfitting-och-modellval">¶</a></h2><p>Jag använde val-loss för att avgöra vilken checkpoint som var "bäst" och sparade den som <code>best.pt</code>. Anledningen är att sista epoken inte alltid är den bästa: om train loss fortsätter ner men val loss börjar gå upp, har modellen börjat överanpassa sig. Genom att istället ta epoken med lägst val-loss får jag en mer robust modell för testet i slutet.</p>
+<h2 id="Begr%C3%A4nsningar-i-j%C3%A4mf%C3%B6relsen">Begränsningar i jämförelsen<a class="anchor-link" href="#Begr%C3%A4nsningar-i-j%C3%A4mf%C3%B6relsen">¶</a></h2><p>Jag vill vara ärlig med att jämförelsen inte är perfekt kontrollerad. Ett par saker som gör att jag tar slutsatserna med en nypa salt:</p>
 <ul>
-<li>baseline-modellen och CNN-varianterna inte har exakt samma arkitekturtyp</li>
-<li>augmentation inte användes i alla modeller</li>
-<li>vissa körningar hade olika upplägg att jämföra</li>
+<li>baseline-FFN och CNN-varianterna har inte exakt samma träningsupplägg</li>
+<li>augmentation användes inte i alla modeller</li>
+<li>vissa körningar har olika konfig som kanske påverkar utfallet</li>
 </ul>
-<p>En ännu mer rättvis jämförelse skulle vara att:</p>
-<ol>
-<li>köra FFN och CNN med exakt samma träningsupplägg</li>
-<li>köra varje modell både med och utan augmentation</li>
-<li>hålla antal epochs och övriga hyperparametrar helt lika</li>
-</ol>
+<p>En mer rättvis jämförelse skulle vara att köra FFN och CNN med exakt samma upplägg, både med och utan augmentation, och hålla epochs och övriga hyperparametrar identiska. Det är något jag skulle göra om om jag hade mer tid.</p>
 </div>
 </div>
 </div>
@@ -8097,21 +8102,15 @@ train/validation loss, train/validation accuracy, tid per epoch, total tränings
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Slutsats">Slutsats<a class="anchor-link" href="#Slutsats">¶</a></h2><p>Arbetet visade tydligt att CNN är bättre än en enkel FFN för MNIST. De convolutional layers som lades till gjorde att modellen kunde arbeta mer naturligt med bilddata och nå högre accuracy.</p>
-<p>Data augmentation gjorde träningsdatan mer varierad och gav en mer realistisk träningssituation, även om det inte automatiskt gav bättre resultat i alla lägen. Regularization med dropout, batch normalization och weight decay gav däremot ett tydligt förbättrat resultat i den sista modellen. Det viktigaste från experimenten är därför inte bara slutvärdet, utan också förståelsen för hur:</p>
+<h2 id="Slutsats">Slutsats<a class="anchor-link" href="#Slutsats">¶</a></h2><p>Det jag tar med mig från det här är att CNN slår en enkel FFN ganska tydligt på MNIST, att augmentation hjälper när modellen är tillräckligt uttrycksfull men kan stjälpa när den inte är det, och att regularization (dropout + batch norm + weight decay tillsammans) ger en konkret förbättring även när basmodellen redan är bra.</p>
+<p>Men det viktigaste är inte själva slutsiffran. Det viktigaste är att jag faktiskt kan reproducera vad jag gjorde. Jag kan öppna vilken körning som helst och se exakt vilken config som användes, vilka kurvor som ritades, vilka exempel som klassificerades fel. Det är en enorm skillnad jämfört med hur jag normalt skulle tackla en sån här uppgift, och jag tror det är den största lärdomen från Part 2 — att ha en arbetsprocess som inte producerar "siffror utan minne".</p>
+<h2 id="M%C3%B6jligt-fortsatt-arbete">Möjligt fortsatt arbete<a class="anchor-link" href="#M%C3%B6jligt-fortsatt-arbete">¶</a></h2><p>Om jag skulle bygga vidare hade jag velat:</p>
 <ul>
-<li>augmentation påverkar data</li>
-<li>CNN skiljer sig från FFN</li>
-<li>olika arkitekturer påverkar resultat</li>
-<li>regularization kan minska overfitting och förbättra generalisering</li>
-<li>TensorBoard och checkpointing gör experiment lättare att följa och jämföra</li>
-</ul>
-<h2 id="M%C3%B6jligt-fortsatt-arbete">Möjligt fortsatt arbete<a class="anchor-link" href="#M%C3%B6jligt-fortsatt-arbete">¶</a></h2><ul>
-<li>köra mer rättvisa kontrollerade jämförelser mellan modeller</li>
-<li>testa dropout och batch normalization</li>
-<li>jämföra modeller med samma parameterstorlek</li>
-<li>logga fler sammanfattande metrics i separata JSON-filer</li>
-<li>visualisera vikter eller feature maps från conv-lagren</li>
+<li>köra FFN och CNN med exakt samma träningsupplägg för en mer kontrollerad jämförelse</li>
+<li>testa dropout och batch normalization separat för att se vilken som faktiskt drar lasset</li>
+<li>jämföra modeller med samma antal parametrar istället för samma antal lager</li>
+<li>logga sammanfattande metrics i en separat JSON så det blir lättare att aggregera över körningar</li>
+<li>visualisera vikter eller feature maps från conv-lagren — det vore intressant att faktiskt <em>se</em> vad de tidiga lagren har lärt sig</li>
 </ul>
 </div>
 </div>

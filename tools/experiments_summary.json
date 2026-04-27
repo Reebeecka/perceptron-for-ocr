@@ -1,5 +1,5 @@
 {
-  "_about": "Kanonisk sammanställning av samtliga experiment i assignment 1. Används av tools/make_summary_plot.py och tools/log_to_mlflow.py. Värden kommer ursprungligen från rapport_assignment1_part2.md (huvudkörningar) och outputs/tuning_results.json (tuning-svep).",
+  "_about": "Min sammanställning av alla experiment i assignment 1 — den enda källan för helhetsbilden. Plockas upp av tools/make_summary_plot.py och tools/log_to_mlflow.py så jag inte behöver hardkoda siffror på flera ställen. Värdena kommer från rapport_assignment1_part2.md (huvudkörningar) och outputs/tuning_results.json (tuning-svep).",
   "part2_main_runs": [
     {
       "name": "FFN baseline",

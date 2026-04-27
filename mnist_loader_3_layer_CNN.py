@@ -69,7 +69,7 @@ class AddGaussianNoise:
 
 
 def unnormalize_mnist(x: torch.Tensor) -> torch.Tensor:
-    # x: (1, H, W) normalized with mean=0.1307 std=0.3081
+    # x kommer in normaliserad (mean=0.1307, std=0.3081). Jag plockar tillbaka den till [0,1] för att kunna visa den i TensorBoard.
     mean = 0.1307
     std = 0.3081
     return (x * std) + mean
@@ -83,14 +83,14 @@ def log_augmentation_preview(
     variants_per_image: int = 3,
     tag: str = "06_Augmentation/original + augmentationer",
 ) -> None:
-    # Each row shows one original image followed by multiple augmented versions
-    # of the same image, which is easier for beginners to interpret.
+    # Jag bygger varje rad som: original följt av några augmenterade versioner av samma bild.
+    # Det blir mycket lättare att läsa än bara en grid med slumpvis augmenterade bilder.
     imgs: list[torch.Tensor] = []
     for base_idx in base_indices:
         original_x, _ = original_dataset[base_idx]
         imgs.append(unnormalize_mnist(original_x).clamp(0.0, 1.0))
         for _ in range(variants_per_image):
-            aug_x, _ = dataset_with_aug[base_idx]  # stochastic transform is applied here
+            aug_x, _ = dataset_with_aug[base_idx]  # här triggar transform-stacken så jag får en ny augmenterad variant
             imgs.append(unnormalize_mnist(aug_x).clamp(0.0, 1.0))
 
     grid = make_grid(torch.stack(imgs, dim=0), nrow=variants_per_image + 1, padding=2)
@@ -128,14 +128,14 @@ def save_curves(history: dict[str, list[float]], out_dir: str) -> None:
 
 
 def make_confusion_matrix_percent_figure(y_true: list[int], y_pred: list[int]):
-    # Build 10x10 confusion matrix where:
-    # x-axis = true label, y-axis = predicted label
+    # 10x10 confusion matrix: x-axeln = sann etikett, y-axeln = prediktion.
+    # Jag väljer den orienteringen för att kolumnen ska visa "vad blir x egentligen klassad som".
     cm = [[0 for _ in range(10)] for _ in range(10)]
     for t, p in zip(y_true, y_pred):
         if 0 <= t <= 9 and 0 <= p <= 9:
             cm[p][t] += 1
 
-    # Convert counts -> percent of TRUE class (column-wise since x=true).
+    # Räkna om till procent per sann klass (kolumnvis), annars dominerar bara klasserna med flest exempel.
     cm_pct = [[0.0 for _ in range(10)] for _ in range(10)]
     for true_label in range(10):
         col_sum = 0
@@ -242,25 +242,25 @@ def main():
         "00_Info/README",
         "\n".join(
             [
-                "## Vad visar TensorBoard här?",
+                "## Vad är det jag tittar på?",
                 "",
-                "Den här körningen tränar en enkel neural network-modell på MNIST (hand-skrivna siffror).",
+                "Den här körningen tränar en 3-layer CNN på MNIST. Jämfört med 2-layer-versionen vill jag se om ett extra conv-lager gör någon märkbar skillnad eller om jag bara lägger på parametrar i onödan.",
                 "",
-                "### Viktiga grafer",
-                "- **01_Förlust (Loss)**: lägre är bättre. Visar hur 'fel' modellen har.",
-                "- **02_Träffsäkerhet (Accuracy)**: högre är bättre. Andel rätt klassificeringar.",
+                "### Det jag faktiskt följer",
+                "- **01_Förlust (Loss)**: lägre = bättre. Hur 'fel' modellen är.",
+                "- **02_Träffsäkerhet (Accuracy)**: högre = bättre. Andel rätt.",
                 "- **Train vs Val**:",
-                "  - **Train** = data modellen tränar på.",
-                "  - **Val** = data som *inte* används för att uppdatera vikter (bra för att upptäcka overfitting).",
+                "  - **Train** = data modellen tränas på.",
+                "  - **Val** = data den *inte* uppdaterar vikter på, bra för att upptäcka när den börjar pluggar in svaren.",
                 "",
-                "### Overfitting (övertränning) – tumregel",
-                "- Om **train loss går ner** men **val loss går upp**: modellen kan börja överanpassa sig.",
-                "- Därför sparar vi **best.pt** från epoken med lägst val-loss (inte nödvändigtvis sista epoken).",
+                "### Overfitting — tumregel jag använder",
+                "- Om train loss går ner men val loss börjar gå upp så är det dags att lyssna.",
+                "- Därför sparar jag `best.pt` på epoken med lägst val-loss, inte sista epoken.",
                 "",
-                "### Nyckeltal",
-                "- **00_KeyNumbers/** innehåller sammanfattning (best epoch, test-accuracy, total tid).",
-                "- **03_Tid/** visar tid per epok och hur länge körningen har pågått.",
-                "- **04_Hastighet/** visar ungefärlig throughput (bilder per sekund) under träning.",
+                "### Nyckeltal jag tittar på efter körning",
+                "- `00_KeyNumbers/` — sammanfattning (best epoch, test-accuracy, total tid).",
+                "- `03_Tid/` — tid per epok och total tid.",
+                "- `04_Hastighet/` — ungefärlig throughput i bilder per sekund.",
             ]
         ),
         0,
@@ -270,8 +270,7 @@ def main():
 
     torch.manual_seed(training_config["seed"])
 
-    # Data augmentation should apply ONLY to training data.
-    # Validation + test should use a clean, deterministic transform.
+    # Jag augmenterar BARA träningsdatan. Val/test ska vara deterministiska, annars är jämförelsen meningslös.
     train_transform = transforms.Compose(
         [
             transforms.RandomAffine(
@@ -294,7 +293,7 @@ def main():
         ]
     )
 
-    # Build the split indices from a dataset with eval transforms to keep val deterministic.
+    # Splitten görs på dataset med ren eval-transform så att val-setet är deterministiskt mellan körningar.
     full_train_for_split = datasets.MNIST(root="./data", train=True, download=True, transform=eval_transform)
     full_train_aug = datasets.MNIST(root="./data", train=True, download=True, transform=train_transform)
     test_set = datasets.MNIST(root="./data", train=False, download=True, transform=eval_transform)
@@ -307,14 +306,12 @@ def main():
         generator=torch.Generator().manual_seed(training_config["seed"]),
     )
 
-    # Same indices, but different transforms:
-    # - train uses augmentation
-    # - val uses clean eval transform
+    # Samma index, men olika transforms — train får augmentation, val/test får inte det.
     train_set = Subset(full_train_aug, train_part.indices)
     val_set = Subset(full_train_for_split, val_part.indices)
 
-    # Log a visual preview of augmentation to TensorBoard (Images tab).
-    # Each row shows: original | augmented | augmented | augmented
+    # Logga en bild-preview av augmentationen i TensorBoard så jag kan kolla att den ser rimlig ut.
+    # Varje rad: original | augmenterad | augmenterad | augmenterad.
     preview_indices = [int(idx) for idx in train_part.indices[:4]]
     log_augmentation_preview(writer, full_train_for_split, full_train_aug, preview_indices, variants_per_image=3)
 
@@ -322,12 +319,11 @@ def main():
         "00_Info/augmentation",
         "\n".join(
             [
-                "Train augmentation:",
+                "Det här applicerar jag på träningsdatan:",
                 "- RandomAffine: degrees=15, translate=0.10, scale=(0.90,1.10), shear=10",
-                "- Gaussian noise: std=0.10",
+                "- Gaussian noise med std=0.10",
                 "",
-                "Val/Test:",
-                "- ToTensor + Normalize (ingen augmentation)",
+                "Val/test rör jag inte — bara ToTensor + Normalize. Annars går det inte att jämföra rättvist.",
             ]
         ),
         0,
@@ -383,7 +379,7 @@ def main():
             f"val_loss={val_loss_avg:.4f} val_acc={val_acc_avg:.4f}"
         )
 
-        # TensorBoard scalars + performance
+        # Logga allt jag vill kunna jämföra mellan körningar
         writer.add_scalar("01_Förlust (loss)/train", train_loss_avg, epoch)
         writer.add_scalar("01_Förlust (loss)/val", val_loss_avg, epoch)
         writer.add_scalar("02_Träffsäkerhet (accuracy)/train", train_acc_avg, epoch)
@@ -392,16 +388,16 @@ def main():
         writer.add_scalar("03_Tid/körning hittills (sekunder)", time.time() - start_time, epoch)
         writer.add_scalar("04_Hastighet/bilder per sekund (train)", train_total / max(1e-9, epoch_seconds), epoch)
 
-        # Curves figure (nice dashboard); log once per epoch.
+        # Spara kurvbilden i TensorBoard varje epok så jag ser den växa fram
         fig = make_curves_figure(history)
         writer.add_figure("05_Figurer/kurvor (loss + accuracy)", fig, global_step=epoch)
         plt.close(fig)
 
-        # Save checkpoint each epoch (simple + safe).
+        # Checkpoint per epok — billigt på MNIST och bra att kunna gå tillbaka
         ckpt_epoch_path = os.path.join(out_dir, f"epoch_{epoch:03d}.pt")
         torch.save({"epoch": epoch, "model": model.state_dict(), "optimizer": opt.state_dict(), "history": history, "config": training_config}, ckpt_epoch_path)
 
-        # Track best model by validation loss.
+        # Spara separat best.pt på lägsta val-loss — det är den jag testar med sen
         if val_loss_avg < best_val_loss:
             best_val_loss = val_loss_avg
             best_epoch = epoch
@@ -420,7 +416,7 @@ def main():
     writer.add_scalar("00_KeyNumbers/total träningstid (sekunder)", total_train_seconds, 0)
     save_curves(history, out_dir)
 
-    # Use ONLY the best validation-loss checkpoint for the final test evaluation.
+    # Viktigt: testa bara med best.pt (lägsta val-loss). Inte sista epoken.
     best = torch.load(os.path.join(out_dir, "best.pt"), map_location=device)
     model.load_state_dict(best["model"])
     test_loss, test_acc = eval_epoch(model, test_loader, loss_fn, device)
@@ -428,7 +424,7 @@ def main():
     writer.add_scalar("00_KeyNumbers/test loss (lägre är bättre)", test_loss, 0)
     writer.add_scalar("00_KeyNumbers/test accuracy (högre är bättre)", test_acc, 0)
 
-    # Collect predictions for confusion matrix + examples (TEST).
+    # Samla prediktioner för confusion matrix + exempelbilder
     model.eval()
     y_true: list[int] = []
     y_pred: list[int] = []
@@ -446,7 +442,7 @@ def main():
     save_examples(xs, y_true, y_pred, out_dir, "examples_correct.png", want_correct=True, max_examples=12)
     save_examples(xs, y_true, y_pred, out_dir, "examples_incorrect.png", want_correct=False, max_examples=12)
 
-    # TensorBoard figures for evaluation artifacts.
+    # Lägg in utvärderings-figurerna i TensorBoard också, så allt är på ett ställe
     cm_fig = make_confusion_matrix_percent_figure(y_true, y_pred)
     writer.add_figure("05_Figurer/confusion matrix (% av TRUE klass)", cm_fig, global_step=0)
     plt.close(cm_fig)

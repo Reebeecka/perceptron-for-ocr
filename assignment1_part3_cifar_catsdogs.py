@@ -5,12 +5,13 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Iterable
 
-# Ensure Matplotlib can write cache/config in this workspace.
-# (Some environments don't allow writing to ~/.matplotlib)
+# Tvinga matplotlib att skriva sin cache i workspacet — i vissa miljöer (t.ex. när jag
+# kör utanför min vanliga shell) får den inte skriva i ~/.matplotlib och då dör hela
+# importen tyst.
 _MPL_DIR = os.path.join(os.path.dirname(__file__), ".mplconfig")
 os.makedirs(_MPL_DIR, exist_ok=True)
 os.environ.setdefault("MPLCONFIGDIR", _MPL_DIR)
-os.environ.setdefault("MPLBACKEND", "Agg")  # avoid GUI/backends + reduce font issues
+os.environ.setdefault("MPLBACKEND", "Agg")  # ingen GUI-backend, det kraschar bara på vissa setups
 
 import torch
 import torch.nn as nn
@@ -29,14 +30,14 @@ class TrainConfig:
     weight_decay: float = 1e-4
     val_frac: float = 0.15
     test_frac: float = 0.15
-    img_size: int = 64  # smaller = faster (good for 8GB RAM)
+    img_size: int = 64  # mindre = snabbare, jag kör på 8 GB RAM
     mode: str = "scratch"  # "scratch" | "resnet50"
-    max_train_pool: int | None = None  # optionally shrink dataset for speed
+    max_train_pool: int | None = None  # krymp datasetet om jag bara vill testa snabbt
 
 
 def _get_mode(default: str = "scratch") -> str:
-    # Choose training mode via environment variable to make running easy:
-    # MODE=scratch or MODE=resnet50
+    # Jag väljer mode via env-var så jag slipper redigera koden mellan körningar:
+    # MODE=scratch eller MODE=resnet50
     mode = os.environ.get("MODE", default).strip().lower()
     if mode not in {"scratch", "resnet50"}:
         raise ValueError(f"Invalid MODE={mode!r}. Use MODE=scratch or MODE=resnet50.")
@@ -44,28 +45,29 @@ def _get_mode(default: str = "scratch") -> str:
 
 
 def _unnormalize_imagenet(x: torch.Tensor, mean: list[float], std: list[float]) -> torch.Tensor:
-    # x: (3,H,W) normalized with ImageNet mean/std
+    # x kommer in normaliserad med ImageNets mean/std. Plockar tillbaka till [0,1] så bilderna
+    # ser ut som bilder igen när jag visar dem.
     m = torch.tensor(mean, dtype=x.dtype).view(3, 1, 1)
     s = torch.tensor(std, dtype=x.dtype).view(3, 1, 1)
     return (x * s) + m
 
 
 def _imagenet_mean_std(weights: ResNet50_Weights) -> tuple[list[float], list[float]]:
-    # Torchvision versions differ in whether weights.meta contains mean/std.
-    # Most reliably, extract from the Normalize transform inside weights.transforms().
+    # Olika torchvision-versioner lägger mean/std på olika ställen — säkraste är att
+    # gräva fram dem ur Normalize-transformen i weights.transforms().
     t = weights.transforms()
     for tr in getattr(t, "transforms", []):
         if isinstance(tr, transforms.Normalize):
             return list(tr.mean), list(tr.std)
-    # Fallback (common ImageNet)
+    # Fallback om jag inte hittar dem — standardvärden för ImageNet.
     return [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 
 
 class FilterAndRemap(Dataset):
     """
-    Curated dataset wrapper:
-    - keeps only samples whose label is in allowed_labels
-    - remaps those labels to 0..K-1 in a stable order
+    Liten wrapper som kurerar ett dataset:
+    - behåller bara samples vars label finns i allowed_labels
+    - mappar om labels till 0..K-1 så att klassindexen blir kontinuerliga
     """
 
     def __init__(self, base: Dataset, allowed_labels: list[int], label_names: list[str]):
@@ -74,8 +76,9 @@ class FilterAndRemap(Dataset):
         self.label_names = label_names
         self.label_to_new = {lab: i for i, lab in enumerate(allowed_labels)}
         self.indices: list[int] = []
-        # IMPORTANT: don't iterate `base[i]` here, since that can apply transforms
-        # and make startup extremely slow. Prefer using raw labels if available.
+        # Jag itererar INTE base[i] här — det skulle trigga transforms och göra startup
+        # extremt långsam. Plockar råa labels från `targets` om det finns, annars
+        # faller jag tillbaka på base[i] som fallback.
         targets = getattr(base, "targets", None)
         if targets is not None:
             for i, y in enumerate(targets):
@@ -281,8 +284,8 @@ def save_examples(
 
 
 def _device() -> torch.device:
-    # Default to CPU for stability; MPS can occasionally abort in some setups.
-    # You can enable MPS by running with: USE_MPS=1
+    # Defaultar till CPU för stabilitet — MPS kan abort:a på vissa setups.
+    # Slå på MPS med USE_MPS=1 om jag vill köra på GPU.
     if os.environ.get("USE_MPS", "").strip() == "1" and torch.backends.mps.is_available():
         return torch.device("mps")
     return torch.device("cpu")
@@ -294,7 +297,7 @@ def _seed_everything(seed: int) -> None:
 
 def _make_run_dirs(run_name: str) -> tuple[str, str, str]:
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    # Keep all part-3 artifacts inside assignment1/
+    # Allt som hör till del 3 hamnar inne i assignment1/, så jag inte rörar resten av repot.
     out_dir = os.path.join("assignment1", "outputs_catsAndDogs", f"{run_name}__run_{run_id}")
     tb_dir = os.path.join(out_dir, "tensorboard")
     os.makedirs(out_dir, exist_ok=True)
@@ -302,9 +305,9 @@ def _make_run_dirs(run_name: str) -> tuple[str, str, str]:
 
 
 def _curate_cifar10_catsdogs(train: bool, transform) -> FilterAndRemap:
-    # CIFAR-10 label indices: https://www.cs.toronto.edu/~kriz/cifar.html
-    # 3=cat, 5=dog
-    # Keep datasets inside assignment1/data (same place as MNIST in part 2)
+    # CIFAR-10 har 10 klasser, jag plockar ut bara katt (3) och hund (5).
+    # Officiell label-lista finns på https://www.cs.toronto.edu/~kriz/cifar.html.
+    # Datasetet sparas under assignment1/data så det ligger på samma ställe som MNIST från del 2.
     base = datasets.CIFAR10(root="assignment1/data", train=train, download=True, transform=transform)
     return FilterAndRemap(base, allowed_labels=[3, 5], label_names=["cat", "dog"])
 
@@ -316,7 +319,7 @@ def _build_model(mode: str, num_classes: int, device: torch.device) -> nn.Module
     if mode == "resnet50":
         weights = ResNet50_Weights.IMAGENET1K_V2
         model = resnet50(weights=weights)
-        # Replace the classifier head for our 2 classes.
+        # Byter ut sista fc-lagret mot ett som ger ut 2 klasser (cat/dog) i stället för 1000.
         model.fc = nn.Linear(model.fc.in_features, num_classes)
         return model.to(device)
 
@@ -324,7 +327,8 @@ def _build_model(mode: str, num_classes: int, device: torch.device) -> nn.Module
 
 
 def _freeze_backbone_for_transfer(model: nn.Module) -> None:
-    # Freeze everything except the classifier head (fc).
+    # Frys allt utom fc-lagret. Det är så jag faktiskt utnyttjar features som ResNet
+    # redan lärt sig på ImageNet — annars skulle jag bara träna om hela nätet.
     for p in model.parameters():
         p.requires_grad = False
     for p in model.fc.parameters():  # type: ignore[attr-defined]
@@ -375,7 +379,7 @@ def main():
                 transforms.Normalize(mean=mean, std=std),
             ]
         )
-        # Use a smaller eval size for speed (ResNet works with variable spatial dims).
+        # Mindre eval-size än ImageNet-default — ResNet klarar varierande spatiala dims och det blir mycket snabbare på laptop.
         eval_transform = transforms.Compose(
             [
                 transforms.Resize(56),
@@ -384,8 +388,8 @@ def main():
                 transforms.Normalize(mean=mean, std=std),
             ]
         )
-        writer.add_text("00_Info/model", "ResNet50 (pre-trained on ImageNet) + new fc head", 0)
-        writer.add_text("00_Info/image_size", "48x48 (very fast transfer learning on laptop)", 0)
+        writer.add_text("00_Info/model", "ResNet50 (förtränad på ImageNet) med nytt fc-huvud — bara fc tränas hos mig", 0)
+        writer.add_text("00_Info/image_size", "48x48 — väldigt snabb transfer learning på laptop", 0)
     else:
         train_transform = transforms.Compose(
             [
@@ -402,17 +406,17 @@ def main():
                 transforms.ToTensor(),
             ]
         )
-        writer.add_text("00_Info/model", "SmallCNN (trained from scratch)", 0)
+        writer.add_text("00_Info/model", "SmallCNN — egen liten CNN tränad från grunden, ingen förträning", 0)
         writer.add_text("00_Info/image_size", f"{config.img_size}x{config.img_size}", 0)
 
-    # Curated dataset: only cats + dogs from CIFAR-10
+    # Mitt kurerade dataset — bara katter och hundar från CIFAR-10
     print("Loading curated CIFAR-10 cats vs dogs...")
     full_train = _curate_cifar10_catsdogs(train=True, transform=train_transform)
-    full_eval = _curate_cifar10_catsdogs(train=True, transform=eval_transform)  # same images, clean transform
+    full_eval = _curate_cifar10_catsdogs(train=True, transform=eval_transform)  # samma bilder, men ren eval-transform
     test_set = _curate_cifar10_catsdogs(train=False, transform=eval_transform)
     print(f"Sizes: train_pool={len(full_eval)} test={len(test_set)}")
 
-    # Optionally shrink the train pool for faster experimentation (useful on laptops).
+    # Krymper poolen om jag bara vill köra snabbt — användbart när jag testar saker på min laptop.
     if config.max_train_pool is not None and len(full_eval) > config.max_train_pool:
         g = torch.Generator().manual_seed(config.seed)
         perm = torch.randperm(len(full_eval), generator=g).tolist()
@@ -421,8 +425,9 @@ def main():
         full_eval = Subset(full_eval, keep)
         print(f"Using subset for speed: train_pool={len(full_eval)}")
 
-    # Create train/val split from full_eval indices (deterministic, clean transform),
-    # then apply the same indices to augmented train dataset.
+    # Splitten görs på full_eval (ren transform, deterministisk), och sen återanvänder
+    # jag samma index på det augmenterade trainsetet — så jag är säker på att val-setet
+    # aldrig ser augmentation och inte överlappar med train.
     n = len(full_eval)
     n_val = int(n * config.val_frac)
     n_train = n - n_val
@@ -505,7 +510,7 @@ def main():
 
         fig = make_curves_figure(history)
         writer.add_figure("05_Figurer/kurvor (loss + accuracy)", fig, global_step=epoch)
-        # matplotlib import is local; closing via fig API is fine
+        # matplotlib är importerad lokalt i hjälpfunktionen, så jag stänger via fig API:t
         fig.clf()
 
         ckpt_epoch_path = os.path.join(out_dir, f"epoch_{epoch:03d}.pt")
@@ -535,7 +540,7 @@ def main():
     writer.add_scalar("00_KeyNumbers/test loss (lägre är bättre)", test_loss, 0)
     writer.add_scalar("00_KeyNumbers/test accuracy (högre är bättre)", test_acc, 0)
 
-    # Collect predictions for confusion matrix + examples (TEST).
+    # Samla prediktioner för confusion matrix + exempelbilder
     model.eval()
     y_true: list[int] = []
     y_pred: list[int] = []
@@ -547,8 +552,9 @@ def main():
             pred = logits.argmax(dim=1).cpu()
             y_true.extend(y.tolist())
             y_pred.extend(pred.tolist())
-            # Save images for visualization.
-            # If we used ImageNet normalization (resnet50), unnormalize for nicer plots.
+            # Spara bilderna så jag kan visa dem.
+            # I resnet50-läget normaliserar jag med ImageNet-mean/std, då måste jag plocka tillbaka
+            # bilderna till [0,1] innan plot, annars ser de helt konstiga ut.
             x_cpu = x.cpu()
             if config.mode == "resnet50":
                 weights = ResNet50_Weights.IMAGENET1K_V2

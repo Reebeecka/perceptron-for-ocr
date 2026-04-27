@@ -2,76 +2,56 @@
 
 ## TL;DR
 
-- **Uppgift:** Klassificera handskrivna siffror (MNIST) och jämföra hur en enkel feed-forward-modell står sig mot olika CNN-varianter.
-- **Bästa modell:** 3-layer CNN med dropout, batch normalization och weight decay nådde **99.21%** test accuracy mot 97.64% för en enkel FFN-baseline.
-- **Bästa tuning-körning:** "low_noise"-konfigurationen pressade upp resultatet till **99.34%** test accuracy.
-- **Arbetssätt:** varje körning sparas i en egen `outputs/run_<timestamp>/`-mapp med `training_config.json`, checkpoints, träningskurvor, confusion matrix och TensorBoard-loggar — så att resultaten är reproducerbara.
-- **Översiktsbild:** se `outputs/summary_all_runs.png` för en sammanfattning av alla körningar.
+Jag tränade en handfull modeller på MNIST och jämförde hur de presterade när jag stegvis bytte från en enkel FFN till olika CNN-varianter och sen lade på regularization. Den korta versionen är att FFN-baseline landade på **97.64%** test accuracy, och så fort jag bytte till en CNN hoppade resultatet upp till nästan 99%. När jag lade på dropout, batch normalization och weight decay på 3-layer CNN:en kom jag till **99.21%**, och med lite hyperparameter-tuning ovanpå det pressades det vidare till **99.34%** ("low_noise"-konfigen).
+
+Det jag tycker är mest värt att lyfta är inte slutsiffran utan att varje körning är spårbar: alla körningar har en egen `outputs/run_<timestamp>/`-mapp med config, checkpoints, träningskurvor, confusion matrix och TensorBoard-loggar. Det betyder att jag kan gå tillbaka månader senare och faktiskt förstå vad jag gjorde, inte bara veta vad det landade på.
 
 ![Sammanfattning av alla körningar](outputs/summary_all_runs.png)
 
 ## Inledning
-I den här delen av uppgiften var målet att gå vidare från en enkel feed-forward-modell (FFN) till mer bildanpassade lösningar, samt att börja arbeta mer strukturerat med MLOps, data augmentation och experiment med olika nätarkitekturer.
 
-Arbetet utgick från MNIST-datasetet med handskrivna siffror. Modellerna tränades i PyTorch och resultaten följdes i TensorBoard. För varje körning sparades även checkpoints, träningskonfiguration och visuella artefakter som träningskurvor, confusion matrix och exempelbilder.
+Målet med den här delen var att bygga vidare från en enkel feed-forward-modell och se vad som händer när jag byter till mer bildanpassade arkitekturer. Samtidigt ville jag börja jobba mer strukturerat — alltså inte bara skriva en `.py`-fil och få ut en siffra, utan faktiskt logga, spara checkpoints och kunna jämföra körningar i efterhand.
+
+Allt utgår från MNIST-datasetet. Modellerna är skrivna i PyTorch och loggas i TensorBoard. För varje körning sparar jag config, checkpoints, kurvor, confusion matrix och exempelbilder så jag kan granska träningen i detalj efteråt.
 
 ## Mål
-Målet med del 2 var att:
 
-- införa enklare MLOps-arbetssätt
-- logga träning och prestanda tydligt
-- testa data augmentation
-- byta från FFN till CNN
-- jämföra olika CNN-arkitekturer
+Det jag ville få ut av del 2 var:
+
+- en enklare MLOps-rutin som faktiskt fungerar för mig
+- tydligare loggning av träning och prestanda
+- testa vad data augmentation gör i praktiken
+- byta från FFN till CNN och se hur stor skillnad det gör
+- jämföra olika CNN-arkitekturer mot varandra på lika villkor
 
 ## MLOps och spårbarhet
-För att göra experimenten spårbara skapades en egen output-mapp för varje körning:
 
-- `outputs/run_<timestamp>/`
+För att slippa hamna i ett läge där jag har siffror men inte vet hur jag fick fram dem skapade jag en egen output-mapp per körning: `outputs/run_<timestamp>/`. I varje mapp sparas:
 
-I varje körning sparades bland annat:
-
-- `training_config.json`
-- `best.pt`
-- checkpoints per epoch
+- `training_config.json` (alla hyperparametrar)
+- `best.pt` (bästa checkpoint enligt val-loss)
+- `epoch_NNN.pt` per epoch
 - `curves_loss_acc.png`
 - `confusion_matrix_percent.png`
-- `examples_correct.png`
-- `examples_incorrect.png`
+- `examples_correct.png` och `examples_incorrect.png`
 - TensorBoard-loggar i `tensorboard/`
 
-Detta gjorde det möjligt att:
-
-- följa träning steg för steg
-- jämföra olika modeller
-- hitta bästa checkpoint med hjälp av validation loss
-- gå tillbaka och analysera tidigare körningar
-
-TensorBoard användes också för att logga:
-
-- train/validation loss
-- train/validation accuracy
-- tid per epoch
-- total träningstid
-- throughput (bilder per sekund)
-- exempelbilder och augmentation-preview
+I praktiken gör det här att jag kan följa träningen steg för steg, gå tillbaka och titta på en gammal körning, och välja bästa checkpoint utifrån val-loss istället för att bara ta sista epoken. Jag loggar också train/val loss, accuracy, tid per epoch, total träningstid, throughput och en augmentation-preview till TensorBoard, så jag kan se hur det rör sig live medan körningen pågår.
 
 ## Modell 1: Baseline FFN
-Den första modellen var en enkel feed-forward network där bilden först flattenades från `28x28` till en vektor med 784 värden och sedan skickades genom två fully connected layers.
 
-Arkitektur i korthet:
+Det jag började med var en enkel feed-forward, alltså en där bilden flattenas från `28x28` till en vektor på 784 värden och skickas genom två fully connected layers:
 
 - `Flatten`
 - `Linear(784, 128)`
 - `ReLU`
 - `Linear(128, 10)`
 
-Den här modellen fungerade, men tar inte vara på att indata faktiskt är en bild. Därför blir den mindre lämpad än CNN för bildklassificering.
+Den fungerar förvånansvärt bra på MNIST, men det är ganska tydligt att den inte tar vara på att indatan faktiskt är en bild — den ser bara 784 oberoende pixlar. Det är därför jag förväntade mig att en CNN skulle göra bättre ifrån sig.
 
 ## Data augmentation
-För att göra modellen mer robust testades data augmentation på träningsdatan. Augmentationen applicerades bara på train-setet, medan validation och test hölls rena för att ge rättvis utvärdering.
 
-Följande augmentation användes:
+För att se om jag kunde göra modellen mer robust testade jag data augmentation, men bara på train-setet. Validation och test fick vara orörda, annars blir utvärderingen orättvis. Jag använde:
 
 - liten rotation
 - liten förskjutning
@@ -79,113 +59,83 @@ Följande augmentation användes:
 - liten shear
 - Gaussian noise
 
-Syftet var inte att göra bilderna tydligare, utan att skapa rimliga variationer så att modellen inte lär sig alltför exakt hur varje enskild träningsexempel ser ut.
-
-För att göra augmentation lätt att förstå loggades i TensorBoard en preview som visar:
-
-- originalbild
-- flera augmenterade versioner av samma bild
-
-Detta gör det enkelt att se hur samma siffra kan förändras mellan olika träningspass.
+Tanken är inte att göra bilderna *bättre*, utan att skapa rimliga variationer så att modellen inte memorerar exakt hur varje träningsexempel ser ut. För att få en känsla för vad det faktiskt gör loggade jag en preview till TensorBoard som visar originalbilden bredvid flera augmenterade versioner av samma siffra. Det blev mycket lättare att tolka när jag kunde se augmentation visuellt istället för bara läsa parametrarna.
 
 ## Regularization
-Regularization används för att minska risken för overfitting. Tanken är att modellen inte ska bli alltför specialiserad på träningsdatan, utan i stället lära sig mer generella mönster som också fungerar bra på validation- och testdata.
 
-I den här uppgiften testades tre vanliga regularization-metoder:
+Regularization handlar i grunden om att tvinga modellen att inte överanpassa sig till träningsdatan. Jag testade tre varianter parallellt: dropout, batch normalization och weight decay.
 
 ### Dropout
-Dropout betyder att vissa neuroner slumpmässigt stängs av under träningen. Modellen kan då inte lita för mycket på en enda väg genom nätverket, utan måste sprida ut sitt lärande över fler neuroner.
 
-Pedagogiskt kan man tänka att modellen tvingas \"träna utan några av sina favoritneuroner\" i varje steg. Det brukar minska overfitting.
+Dropout stänger av slumpmässiga neuroner under träningen. Effekten blir att modellen inte får luta sig på en enda väg genom nätet — den måste sprida ut sin kunskap. Jag tycker det enklaste sättet att tänka på det är att modellen tvingas träna utan vissa av sina "favoritneuroner" varje steg, och då blir hela nätet mer robust.
 
 ### Batch normalization
-Batch normalization används för att hålla aktiveringarna i nätverket mer stabila mellan olika lager. Det gör ofta träningen jämnare och snabbare, och kan också ge en viss regularization-effekt.
 
-I CNN-modeller placeras batch normalization ofta direkt efter ett convolutional layer. Det hjälper modellen att träna mer stabilt även när nätverket blir djupare.
+Batch normalization håller aktiveringarna mer stabila mellan lagren. Det gör i praktiken att träningen blir jämnare och ofta snabbare, och i många experiment ger det också en viss regularization-effekt på köpet. I CNN:erna lade jag den direkt efter conv-lagren.
 
 ### Weight decay
-Weight decay betyder att stora vikter straffas lite i optimeringen. Det gör att modellen inte lika lätt får väldigt extrema parameter-värden.
 
-Pedagogiskt kan man säga att modellen uppmuntras att hålla sig till enklare lösningar i stället för att överanpassa sig till detaljer i träningsdatan.
+Weight decay är ett straff på stora vikter, så att optimeringen inte tillåts springa iväg till extrema parameter-värden. Det är ett ganska billigt sätt att uppmuntra enklare lösningar.
 
-### Varför det här är viktigt
-Om regularization fungerar som tänkt kan man ofta se att:
+### Vad jag förväntade mig
 
-- train accuracy kanske blir lite lägre än utan regularization
-- men validation- och testresultat blir bättre eller stabilare
-- skillnaden mellan train och val minskar
-
-Det betyder att modellen generaliserar bättre, alltså fungerar bättre på ny data som den inte tränat på tidigare.
+Om regularization fungerar som tänkt brukar man se att train-resultatet kanske blir lite *sämre* (modellen får inte memorera lika bra), men val/test blir bättre eller mer stabilt. Skillnaden mellan train och val krymper. Det är samma sak jag tittade efter i mina körningar.
 
 ## CNN: varför convolutional layers?
-Nästa steg var att byta ut början av modellen till convolutional layers. En CNN är bättre lämpad för bilder eftersom den kan hitta lokala mönster som:
 
-- kanter
-- linjer
-- kurvor
-- delar av siffror
+Nästa steg var att byta ut början av modellen mot convolutional layers. En CNN passar bilder bättre eftersom den kan plocka upp lokala mönster — kanter, linjer, kurvor, delar av siffror — och eftersom den är translationsinvariant. Alltså modellen ska kunna känna igen samma siffra även om den ligger lite olika i bilden, vilket en flat FFN aldrig riktigt fattar.
 
-En viktig idé är translationsinvarians, alltså att modellen ska kunna känna igen samma siffra även om den ligger lite olika i bilden.
-
-Efter convolutional layers användes:
-
-- `ReLU`
-- `MaxPool2d`
-
-Pooling minskar dimensionerna och hjälper modellen att fokusera på viktiga features.
+Efter conv-lagren körde jag `ReLU` följt av `MaxPool2d`. Pooling minskar dimensionerna och hjälper modellen att fokusera på de features som faktiskt betyder något.
 
 ## CNN-arkitekturer som testades
-Tre huvudvarianter jämfördes:
+
+Jag jämförde fem upplägg:
 
 ### 1. FFN-baseline
-En enkel dense-modell utan convolutional layers.
+
+En enkel dense-modell utan conv-lager, samma som ovan.
 
 ### 2. FFN med augmentation
-Samma grundmodell som baseline, men med data augmentation på train-setet.
+
+Samma grundmodell, men med augmentation på train-setet. Jag ville se om enbart augmentation kunde lyfta en FFN.
 
 ### 3. 2-layer CNN
-En CNN med två convolutional layers:
 
-- `Conv2d(1, 16, kernel_size=3, padding=1)`
-- `Conv2d(16, 32, kernel_size=3, padding=1)`
-- `MaxPool2d(2, 2)` efter conv-lagren
+```
+Conv2d(1, 16, kernel_size=3, padding=1)
+Conv2d(16, 32, kernel_size=3, padding=1)
+MaxPool2d(2, 2) efter conv-lagren
+```
 
 ### 4. 3-layer CNN
-En djupare CNN med tre convolutional layers:
 
-- `Conv2d(1, 8, kernel_size=3, padding=1)`
-- `Conv2d(8, 16, kernel_size=3, padding=1)`
-- `Conv2d(16, 32, kernel_size=3, padding=1)`
+En djupare variant:
 
-Den djupare modellen testades för att se om fler conv-lager kunde ge bättre features och därmed bättre resultat.
+```
+Conv2d(1, 8, kernel_size=3, padding=1)
+Conv2d(8, 16, kernel_size=3, padding=1)
+Conv2d(16, 32, kernel_size=3, padding=1)
+```
+
+Tanken var att se om ett extra conv-lager ger märkbart bättre features eller om det är overkill för MNIST.
 
 ### 5. 3-layer CNN med regularization
-Som sista steg byggdes en ny modell ovanpå 3-layer CNN där tre regularization-metoder lades till:
 
-- `BatchNorm2d` efter convolutional layers
+Samma 3-layer CNN, men med:
+
+- `BatchNorm2d` efter varje conv-lager
 - `Dropout` i fully connected-delen
 - `weight_decay` i `Adam`-optimizern
 
-Syftet var att minska overfitting och samtidigt göra träningen mer stabil.
+Det är den modell jag förväntade mig skulle prestera bäst, och den gjorde också det.
 
 ## Features i tidiga och senare conv-lager
-Tidiga convolutional layers brukar lära sig enkla features:
 
-- vertikala och horisontella linjer
-- diagonaler
-- enkla kurvor
-
-Senare conv-lager bygger vidare på dessa och kan lära sig mer komplexa mönster:
-
-- hörn
-- slingor
-- delar av siffror
-- kombinationer av flera linjer och kurvor
-
-Det betyder att de senare lagren ofta fångar mer meningsfulla delar av själva siffran, medan de tidiga lagren mest hittar enkla lokala strukturer.
+Det jag tycker är intressant med CNN:er är att de tidiga conv-lagren brukar lära sig riktigt enkla saker — vertikala och horisontella linjer, diagonaler, enkla kurvor — medan de senare lagren bygger vidare och fångar mer meningsfulla strukturer som hörn, slingor, eller delar av en hel siffra. För MNIST är det inte så mycket att hämta i djupare lager (siffrorna är ju ganska enkla), men det är samma princip som gör att djupare nät skalar så bra på mer komplex bilddata.
 
 ## Resultat
-Följande körningar användes som jämförelse:
+
+Här är de fem huvudkörningarna jag använde som jämförelse, alla med 5 epochs:
 
 | Modell | Run | Best epoch | Test loss | Test accuracy |
 | --- | --- | ---: | ---: | ---: |
@@ -196,75 +146,67 @@ Följande körningar användes som jämförelse:
 | 3-layer CNN + regularization | `run_20260422_151947` | 5 | 0.0217 | 0.9921 |
 
 ## Tolkning av resultaten
-Det tydligaste resultatet var att båda CNN-modellerna presterade bättre än FFN-varianterna.
 
-Några observationer:
+Det tydligaste mönstret är att båda CNN-modellerna var klart bättre än FFN-varianterna, vilket var precis det jag förväntade mig. Det jag inte riktigt förväntade mig var att augmentation faktiskt gjorde FFN:en *sämre* i den här körningen — den landade på 96.98% mot baseline 97.64%. Min tolkning är att en så enkel FFN inte har kapacitet att hantera den extra variationen, och att augmentation kommer till sin rätt först när modellen är tillräckligt uttrycksfull för att dra nytta av den.
 
-- FFN-baseline nådde god prestanda, men låg tydligt under CNN-modellerna.
-- FFN med augmentation blev i just denna körning något sämre än baseline.
-- 2-layer CNN gav ett stort hopp uppåt i test accuracy.
-- 3-layer CNN gav samma test accuracy som 2-layer CNN, men något lägre test loss.
-- 3-layer CNN med regularization gav bäst resultat av alla testade modeller.
+Några andra observationer:
 
-Det kan tolkas som att:
+- 2-layer CNN gav ett stort hopp uppåt jämfört med FFN, vilket bekräftar att MNIST verkligen är ett bildproblem och inte bara ett tabulärt klassificeringsproblem.
+- 3-layer CNN landade på exakt samma test accuracy som 2-layer CNN, men med marginellt lägre test loss. Skillnaden är så liten att jag inte tycker man kan säga att det djupare nätet är "bättre" för just MNIST.
+- 3-layer CNN med regularization blev bäst på alla mått: lägre test loss (0.0217) och högre test accuracy (99.21%) än alla andra. Det är där dropout, batch norm och weight decay tillsammans verkligen syntes.
 
-- CNN är bättre lämpat än FFN för bilddata
-- ett extra convolutional layer kan ge något bättre representation, även om skillnaden här var liten
-- augmentation förbättrade inte den enkla FFN-modellen i just denna körning
-- regularization med dropout, batch normalization och weight decay förbättrade både test loss och test accuracy jämfört med den vanliga 3-layer CNN-modellen
+Sammanfattat: CNN slår FFN, ett extra conv-lager hjälper marginellt, och regularization gör en konkret skillnad även när modellen redan presterar bra.
 
-## Viktig begränsning i jämförelsen
-Jämförelsen är inte helt perfekt kontrollerad, eftersom:
+## Begränsningar i jämförelsen
 
-- baseline-modellen och CNN-varianterna inte har exakt samma arkitekturtyp
-- augmentation inte användes i alla modeller
-- vissa körningar hade olika upplägg att jämföra
+Jag vill vara ärlig med att jämförelsen inte är perfekt kontrollerad. Ett par saker som gör att jag tar slutsatserna med en nypa salt:
 
-Det betyder att slutsatserna ska tolkas försiktigt. En ännu mer rättvis jämförelse skulle vara att:
+- baseline-FFN och CNN-varianterna har inte exakt samma träningsupplägg
+- augmentation användes inte i alla modeller
+- vissa körningar har olika konfig som kanske påverkar utfallet
 
-1. köra FFN och CNN med exakt samma träningsupplägg
-2. köra varje modell både med och utan augmentation
-3. hålla antal epochs och övriga hyperparametrar helt lika
+En mer rättvis jämförelse skulle vara att köra FFN och CNN med exakt samma upplägg, både med och utan augmentation, och hålla epochs och övriga hyperparametrar identiska. Det är något jag skulle göra om om jag hade mer tid.
 
 ## Exempel på sparade artefakter
-Nedan visas några exempel på artefakter som sparades under experimenten.
+
+Några av de bilder som skapas automatiskt per körning:
 
 ### Baseline FFN: träningskurvor
+
 ![Baseline curves](outputs/run_20260422_145158/curves_loss_acc.png)
 
 ### 2-layer CNN: träningskurvor
+
 ![2-layer CNN curves](outputs/run_20260422_145403/curves_loss_acc.png)
 
 ### 3-layer CNN: confusion matrix
+
 ![3-layer CNN confusion matrix](outputs/run_20260422_145458/confusion_matrix_percent.png)
 
 ### 3-layer CNN: felklassificerade exempel
+
 ![3-layer CNN incorrect examples](outputs/run_20260422_145458/examples_incorrect.png)
 
 ### 3-layer CNN med regularization: träningskurvor
+
 ![Regularization curves](outputs/run_20260422_151947/curves_loss_acc.png)
 
 ## Överfitting
-Validation loss användes för att avgöra vilken checkpoint som var bäst. Den bästa modellen sparades som `best.pt`.
 
-Det här är viktigt eftersom sista epoken inte alltid är bäst. Om train loss fortsätter minska men validation loss börjar öka, är det ett tecken på overfitting. Genom att välja checkpoint med lägst validation loss blir modellen mer robust.
+Jag använde val-loss för att avgöra vilken checkpoint som var "bäst" och sparade den som `best.pt`. Anledningen är att sista epoken inte alltid är den bästa: om train loss fortsätter ner men val loss börjar gå upp, har modellen börjat överanpassa sig. Genom att istället ta epoken med lägst val-loss får jag en mer robust modell för testet i slutet.
 
 ## Slutsats
-Arbetet visade tydligt att CNN är bättre än en enkel FFN för MNIST. De convolutional layers som lades till gjorde att modellen kunde arbeta mer naturligt med bilddata och nå högre accuracy.
 
-Data augmentation gjorde träningsdatan mer varierad och gav en mer realistisk träningssituation, även om det inte automatiskt gav bättre resultat i alla lägen. Regularization med dropout, batch normalization och weight decay gav däremot ett tydligt förbättrat resultat i den sista modellen. Det viktigaste från experimenten är därför inte bara slutvärdet, utan också förståelsen för hur:
+Det jag tar med mig från det här är att CNN slår en enkel FFN ganska tydligt på MNIST, att augmentation hjälper när modellen är tillräckligt uttrycksfull men kan stjälpa när den inte är det, och att regularization (dropout + batch norm + weight decay tillsammans) ger en konkret förbättring även när basmodellen redan är bra.
 
-- augmentation påverkar data
-- CNN skiljer sig från FFN
-- olika arkitekturer påverkar resultat
-- regularization kan minska overfitting och förbättra generalisering
-- TensorBoard och checkpointing gör experiment lättare att följa och jämföra
+Men det viktigaste är inte själva slutsiffran. Det viktigaste är att jag faktiskt kan reproducera vad jag gjorde. Jag kan öppna vilken körning som helst och se exakt vilken config som användes, vilka kurvor som ritades, vilka exempel som klassificerades fel. Det är en enorm skillnad jämfört med hur jag normalt skulle tackla en sån här uppgift, och jag tror det är den största lärdomen från Part 2 — att ha en arbetsprocess som inte producerar "siffror utan minne".
 
 ## Möjligt fortsatt arbete
-Om experimenten skulle utvecklas vidare vore naturliga nästa steg:
 
-- köra mer rättvisa kontrollerade jämförelser mellan modeller
-- testa dropout och batch normalization
-- jämföra modeller med samma parameterstorlek
-- logga fler sammanfattande metrics i separata JSON-filer
-- visualisera vikter eller feature maps från conv-lagren
+Om jag skulle bygga vidare hade jag velat:
+
+- köra FFN och CNN med exakt samma träningsupplägg för en mer kontrollerad jämförelse
+- testa dropout och batch normalization separat för att se vilken som faktiskt drar lasset
+- jämföra modeller med samma antal parametrar istället för samma antal lager
+- logga sammanfattande metrics i en separat JSON så det blir lättare att aggregera över körningar
+- visualisera vikter eller feature maps från conv-lagren — det vore intressant att faktiskt *se* vad de tidiga lagren har lärt sig

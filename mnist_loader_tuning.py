@@ -1,9 +1,12 @@
 """
-Hyperparameter-tuning för 3-layer CNN med regularization.
+Hyperparameter-tuning för min 3-layer CNN med regularization.
 
-Kör alla experiment i listan EXPERIMENT_CONFIGS, en i taget.
-Varje körning sparas i outputs/run_<timestamp>_<name>/.
-Resultaten sammanfattas i outputs/tuning_results.json.
+Idén är att jag varierar en knapp i taget (dropout, lr, weight decay, brus, kanalbredd,
+fc-storlek) och låter resten av configen vara densamma. Då blir det lättare att se
+vad som faktiskt påverkar resultatet och vad som mest är slump.
+
+Varje körning hamnar i outputs/run_<timestamp>_<name>/ och sammanställningen
+landar i outputs/tuning_results.json så jag kan sortera dem efter test_acc i efterhand.
 """
 import json
 import os
@@ -19,9 +22,8 @@ from torchvision import datasets, transforms
 from torchvision.utils import make_grid
 
 # ---------------------------------------------------------------------------
-# Experiment-lista
-# Ändra/lägg till rader här för att testa fler kombinationer.
-# En rad = en körning.
+# Mina experiment — en rad = en körning.
+# Lätt att lägga till en ny konfig om jag vill prova någonting senare.
 # ---------------------------------------------------------------------------
 EXPERIMENT_CONFIGS: list[dict] = [
     {
@@ -116,7 +118,9 @@ EXPERIMENT_CONFIGS: list[dict] = [
 
 
 # ---------------------------------------------------------------------------
-# Modell (fully configurable)
+# Modellen — samma 3-layer CNN som tidigare, men jag har gjort allt
+# konfigurerbart (kanaler, fc-storlek, dropout) så att samma kod kan användas
+# för alla mina experiment.
 # ---------------------------------------------------------------------------
 class Net(nn.Module):
     def __init__(self, conv_channels: list[int], fc_hidden: int, dropout_p: float):
@@ -151,7 +155,7 @@ class Net(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Hjälpfunktioner som jag återanvänder mellan körningar
 # ---------------------------------------------------------------------------
 class AddGaussianNoise:
     def __init__(self, std: float):
@@ -242,7 +246,7 @@ def make_curves_figure(history: dict) -> plt.Figure:
 
 
 # ---------------------------------------------------------------------------
-# run_experiment  – köra en enskild konfiguration
+# run_experiment — kör en enskild konfiguration och returnerar resultatraden
 # ---------------------------------------------------------------------------
 def run_experiment(config: dict, device: torch.device, base_out: str) -> dict:
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -404,7 +408,7 @@ def run_experiment(config: dict, device: torch.device, base_out: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# main  – loopar över alla configs och sparar sammanfattning
+# main — loopar över alla configs, kör dem en i taget och sparar sammanfattningen
 # ---------------------------------------------------------------------------
 def main() -> None:
     device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")

@@ -1,4 +1,5 @@
-#C and D: Dense layer class with torch
+# Min FFN-baseline för MNIST. Tanken är att ha en så enkel modell som möjligt
+# att jämföra senare CNN-varianter mot. Inget conv-magi, ingen augmentation.
 import json
 import os
 import time
@@ -80,14 +81,14 @@ def save_curves(history: dict[str, list[float]], out_dir: str) -> None:
 
 
 def make_confusion_matrix_percent_figure(y_true: list[int], y_pred: list[int]):
-    # Build 10x10 confusion matrix where:
-    # x-axis = true label, y-axis = predicted label
+    # 10x10 confusion matrix: x-axeln = sann etikett, y-axeln = prediktion.
+    # Jag väljer den orienteringen för att kolumnen ska visa "vad blir x egentligen klassad som".
     cm = [[0 for _ in range(10)] for _ in range(10)]
     for t, p in zip(y_true, y_pred):
         if 0 <= t <= 9 and 0 <= p <= 9:
             cm[p][t] += 1
 
-    # Convert counts -> percent of TRUE class (column-wise since x=true).
+    # Räkna om till procent per sann klass (kolumnvis), annars dominerar bara klasserna med flest exempel.
     cm_pct = [[0.0 for _ in range(10)] for _ in range(10)]
     for true_label in range(10):
         col_sum = 0
@@ -194,25 +195,25 @@ def main():
         "00_Info/README",
         "\n".join(
             [
-                "## Vad visar TensorBoard här?",
+                "## Vad är det jag tittar på?",
                 "",
-                "Den här körningen tränar en enkel neural network-modell på MNIST (hand-skrivna siffror).",
+                "Den här körningen är min FFN-baseline på MNIST. Inga conv-lager, ingen augmentation — bara en enkel feed-forward som referenspunkt.",
                 "",
-                "### Viktiga grafer",
-                "- **01_Förlust (Loss)**: lägre är bättre. Visar hur 'fel' modellen har.",
-                "- **02_Träffsäkerhet (Accuracy)**: högre är bättre. Andel rätt klassificeringar.",
+                "### Det jag faktiskt följer",
+                "- **01_Förlust (Loss)**: lägre = bättre. Hur 'fel' modellen är.",
+                "- **02_Träffsäkerhet (Accuracy)**: högre = bättre. Andel rätt.",
                 "- **Train vs Val**:",
-                "  - **Train** = data modellen tränar på.",
-                "  - **Val** = data som *inte* används för att uppdatera vikter (bra för att upptäcka overfitting).",
+                "  - **Train** = data modellen tränas på.",
+                "  - **Val** = data den *inte* uppdaterar vikter på, bra för att upptäcka när den börjar pluggar in svaren.",
                 "",
-                "### Overfitting (övertränning) – tumregel",
-                "- Om **train loss går ner** men **val loss går upp**: modellen kan börja överanpassa sig.",
-                "- Därför sparar vi **best.pt** från epoken med lägst val-loss (inte nödvändigtvis sista epoken).",
+                "### Overfitting — tumregel jag använder",
+                "- Om train loss går ner men val loss börjar gå upp så är det dags att lyssna.",
+                "- Därför sparar jag `best.pt` på epoken med lägst val-loss, inte sista epoken.",
                 "",
-                "### Nyckeltal",
-                "- **00_KeyNumbers/** innehåller sammanfattning (best epoch, test-accuracy, total tid).",
-                "- **03_Tid/** visar tid per epok och hur länge körningen har pågått.",
-                "- **04_Hastighet/** visar ungefärlig throughput (bilder per sekund) under träning.",
+                "### Nyckeltal jag tittar på efter körning",
+                "- `00_KeyNumbers/` — sammanfattning (best epoch, test-accuracy, total tid).",
+                "- `03_Tid/` — tid per epok och total tid.",
+                "- `04_Hastighet/` — ungefärlig throughput i bilder per sekund.",
             ]
         ),
         0,
@@ -222,7 +223,8 @@ def main():
 
     torch.manual_seed(training_config["seed"])
 
-    # No augmentation; same normalization for train/val/test.
+    # Ingen augmentation här — jag vill att train/val/test ska ha exakt samma
+    # transformation så att FFN-baseline blir så ren som möjligt att jämföra mot.
     transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -294,7 +296,7 @@ def main():
             f"val_loss={val_loss_avg:.4f} val_acc={val_acc_avg:.4f}"
         )
 
-        # TensorBoard scalars + performance
+        # Logga allt jag vill kunna jämföra mellan körningar
         writer.add_scalar("01_Förlust (loss)/train", train_loss_avg, epoch)
         writer.add_scalar("01_Förlust (loss)/val", val_loss_avg, epoch)
         writer.add_scalar("02_Träffsäkerhet (accuracy)/train", train_acc_avg, epoch)
@@ -303,16 +305,16 @@ def main():
         writer.add_scalar("03_Tid/körning hittills (sekunder)", time.time() - start_time, epoch)
         writer.add_scalar("04_Hastighet/bilder per sekund (train)", train_total / max(1e-9, epoch_seconds), epoch)
 
-        # Curves figure (nice dashboard); log once per epoch.
+        # Spara kurvbilden i TensorBoard varje epok så jag ser den växa fram
         fig = make_curves_figure(history)
         writer.add_figure("05_Figurer/kurvor (loss + accuracy)", fig, global_step=epoch)
         plt.close(fig)
 
-        # Save checkpoint each epoch (simple + safe).
+        # Checkpoint per epok — billigt på MNIST och bra att kunna gå tillbaka
         ckpt_epoch_path = os.path.join(out_dir, f"epoch_{epoch:03d}.pt")
         torch.save({"epoch": epoch, "model": model.state_dict(), "optimizer": opt.state_dict(), "history": history, "config": training_config}, ckpt_epoch_path)
 
-        # Track best model by validation loss.
+        # Spara separat best.pt på lägsta val-loss — det är den jag testar med sen
         if val_loss_avg < best_val_loss:
             best_val_loss = val_loss_avg
             best_epoch = epoch
@@ -331,7 +333,7 @@ def main():
     writer.add_scalar("00_KeyNumbers/total träningstid (sekunder)", total_train_seconds, 0)
     save_curves(history, out_dir)
 
-    # Use ONLY the best validation-loss checkpoint for the final test evaluation.
+    # Viktigt: testa bara med best.pt (lägsta val-loss). Inte sista epoken.
     best = torch.load(os.path.join(out_dir, "best.pt"), map_location=device)
     model.load_state_dict(best["model"])
     test_loss, test_acc = eval_epoch(model, test_loader, loss_fn, device)
@@ -339,7 +341,7 @@ def main():
     writer.add_scalar("00_KeyNumbers/test loss (lägre är bättre)", test_loss, 0)
     writer.add_scalar("00_KeyNumbers/test accuracy (högre är bättre)", test_acc, 0)
 
-    # Collect predictions for confusion matrix + examples (TEST).
+    # Samla prediktioner för confusion matrix + exempelbilder
     model.eval()
     y_true: list[int] = []
     y_pred: list[int] = []
@@ -357,7 +359,7 @@ def main():
     save_examples(xs, y_true, y_pred, out_dir, "examples_correct.png", want_correct=True, max_examples=12)
     save_examples(xs, y_true, y_pred, out_dir, "examples_incorrect.png", want_correct=False, max_examples=12)
 
-    # TensorBoard figures for evaluation artifacts.
+    # Lägg in utvärderings-figurerna i TensorBoard också, så allt är på ett ställe
     cm_fig = make_confusion_matrix_percent_figure(y_true, y_pred)
     writer.add_figure("05_Figurer/confusion matrix (% av TRUE klass)", cm_fig, global_step=0)
     plt.close(cm_fig)

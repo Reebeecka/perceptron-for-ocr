@@ -1,22 +1,24 @@
 """
-Loggar redan körda experiment till MLflow utan att träna om något.
+Liten skript som plockar upp mina redan körda experiment och skickar in dem i
+MLflow — utan att träna om något. Anledningen är att jag vill ha en dashboard
+där alla mina runs ligger sida vid sida, men samtidigt behålla mina egna
+run-mappar som primär källa.
 
-Läser:
-  - tools/experiments_summary.json   (Part 2 huvudkörningar)
-  - outputs/tuning_results.json      (Part 2 tuning-svep)
+Läser från:
+  - tools/experiments_summary.json   (huvudkörningarna i Part 2)
+  - outputs/tuning_results.json      (mitt hyperparameter-svep)
 
-Skapar två experiments i MLflow:
-  - "assignment1_part2_main"   – arkitekturjämförelse
-  - "assignment1_part2_tuning" – hyperparameter-svep
+Det blir två separata experiments i MLflow så de inte blandas ihop:
+  - "assignment1_part2_main"   — arkitekturjämförelsen
+  - "assignment1_part2_tuning" — tuning-svepet
 
-För varje run loggas:
-  - hyperparametrar och run_dir som params
-  - test_loss, test_acc, best_epoch som metrics
-  - tillhörande PNG-artefakter (curves, confusion matrix, examples) om de finns
+För varje run loggas hyperparametrar + run_dir som params, key metrics
+(test_loss, test_acc, best_epoch) som metrics, och PNG-artefakterna som artifacts
+om de finns kvar i run-mappen.
 
-Körning (med .venv aktiverad):
+Kör så här (med .venv aktiverad):
     python3 tools/log_to_mlflow.py
-    mlflow ui --backend-store-uri ./mlruns      # öppnar dashboard på http://127.0.0.1:5000
+    mlflow ui --backend-store-uri ./mlruns      # dashboard på http://127.0.0.1:5000
 
 Eller utan att aktivera .venv:
     .venv/bin/python3 tools/log_to_mlflow.py
